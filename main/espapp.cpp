@@ -2,6 +2,7 @@
 
 #include "espapp.h"
 #include "esp_headers.h"
+#include "esp_task_wdt.h"
 
 using namespace std;
 EspApp::EspApp()
@@ -38,6 +39,7 @@ void EspApp::run()
         micros(); //update overflow
         loop();
         vTaskDelay(10);
+        esp_task_wdt_reset();
     }
     fflush(stdout);
     esp_restart();   
