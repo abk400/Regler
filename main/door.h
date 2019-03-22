@@ -5,7 +5,7 @@
 
 #include <mutex>
 
-
+#include "beeper.h"
 // level up   -- means barrier
 // level down -- means no barrier
 
@@ -64,7 +64,8 @@ public:
     static Door * instance;
     
     void handleEvent(DoorEvent event);
-    
+
+    Beeper m_beeper;
 private:
     void fillDoorStates();
 
@@ -83,6 +84,7 @@ private:
     int m_peopleCounter = 0;
     friend void rising(int );
     friend void falling(int );
+
 };
 
 

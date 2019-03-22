@@ -95,7 +95,7 @@ Door::Door()
 
 void main_run(void *pvParameter) {
     Door * door = (Door*)pvParameter;
-    
+
     door->setup();
     while (true) {
         vTaskDelay(10);
@@ -111,7 +111,7 @@ void Door::start()
 void Door::setup()
 {
    m_leds[0].pin_frequency = 25;
-   m_leds[1].pin_frequency = 26;
+   m_leds[1].pin_frequency = 27;
    
    m_leds[0].pin_in_level = 32;
    m_leds[1].pin_in_level = 35;
@@ -143,7 +143,20 @@ void Door::loop()
     }
     static unsigned long update = micros();
     unsigned long now = micros();
-    
+
+    for (Led &led : m_leds) {
+      if ((led.barrier_prev == led.barrier_now) && led.barrier_now == true) {
+        if (now - led.stabilization_start >
+            1000 * 1000 * m_beeper.getBeeperTimeout()) {
+          m_beeper.start();
+        }
+      }
+    }
+
+    if(m_leds[0].barrier_now == false &&  m_leds[1].barrier_now == false) {
+        m_beeper.stop();
+    }
+
     if (now - update > 1000 * 1000 * 5) {
         Serial.printf("led0.barrier= %d\n", m_leds[0].barrier_now);
         Serial.printf("led1.barrier= %d\n", m_leds[1].barrier_now);
@@ -163,9 +176,11 @@ void Door::handleEvent(DoorEvent event)
     DoorState state = doorStateMachine[m_doorState][event];
     Serial.printf("I: current state: %s, came event %s\n", STATE_NAMES[m_doorState].c_str(), EVENT_NAMES[event].c_str());
     if (state == DoorStateNone) {
+        m_beeper.start();
         Serial.println("E: invalid transition");
         return;
     }
+    m_beeper.stop();
     Serial.printf("I: state: %s ==> %s\n", STATE_NAMES[m_doorState].c_str(), STATE_NAMES[state].c_str());
     if (m_doorState == TRY_ENTER3 && state == MON) {
         Serial.printf("I: m_enterHandler : %d,\n", (bool)m_enterHandler);
@@ -219,6 +234,7 @@ void Door::led_event(int number, bool up)
 void Door::ledPoll(int number)
 {
     Led & led = m_leds[number];
+
     led.barrier_now = (digitalRead(led.pin_in_level) == HIGH);
     if (led.barrier_now != led.barrier_prev) {
         led.barrier_prev = led.barrier_now;
@@ -227,7 +243,6 @@ void Door::ledPoll(int number)
     }
     if (led.stabilization) {
         unsigned long now = micros();
-        
         if (now - led.stabilization_start > quarter_of_second) {
             if (led.barrier_now) {
                 handleEvent((DoorEvent)(number * 2 + 1));

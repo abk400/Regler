@@ -1,0 +1,17 @@
+menu "Regler Configuration"
+
+config SPEAKER_FREQ
+    int "Speaker signal frequency"
+	range 10 20000
+	default 1000
+	help
+		Barrier speaker frequency, Hz
+
+config SPEAKER_TIMEOUUT
+    int "Speaker signal timout"
+	range 1 120
+	default 60
+	help
+		Barrier speaker timeout, seconds
+
+endmenu
