@@ -100,13 +100,15 @@ ResponseBlock ServerCommunication::receiveResponse(std::string * debug)
     ResponseBlock block;
 
     unsigned char buffer[1024] = "";
-    for (int timeout = 5; client.available() == 0 && timeout > 0; timeout--) {
+    int clients = 0;
+    for (int timeout = 5; timeout > 0; timeout--) {
+        clients = client.available();
           Serial.println("Sleeping 1 sec...");
           std::this_thread::sleep_for (std::chrono::seconds(1));
     }
     Serial.printf("Available %d\n", client.available());
-    
-    int size = client.read(buffer, sizeof(buffer) - 1);
+
+    int size = (client.available() > 0) ? client.read(buffer, sizeof(buffer) - 1) : -1;
     stringstream ss3;
     if (size != -1) {
       buffer[size] = '\0';
