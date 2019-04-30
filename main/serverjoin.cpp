@@ -35,14 +35,14 @@ string ServerJoin::getResponseHtml() {
 
 
 void ServerJoin::handleServerJoin() {
-  Serial.println("ServerJoin::handleServerJoin");
+  D_PRINTLN("ServerJoin::handleServerJoin");
   
   stringstream ss;
   ss << getResponseHtml() << endl;            
   
   stringstream printss;
   printss << "Data returned to client: \n" << ss.str();
-  Serial.println(printss.str().c_str());
+  D_PRINTLN(printss.str().c_str());
   
   m_reglerApp->server->send(200, "text/html", ss.str().c_str());
 }
@@ -66,7 +66,7 @@ void ServerJoin::handleNotFound() {
 
 void ServerJoin::handleSubmit() {
 
-  Serial.println("ServerJoin::handleSubmit");
+  D_PRINTLN("ServerJoin::handleSubmit");
   std::map<string, string> arguments;
   for (uint8_t i = 0; i < m_reglerApp->server->args(); i++) {
     arguments[string(m_reglerApp->server->argName(i).c_str()) ] = string(m_reglerApp->server->arg(i).c_str());
@@ -84,7 +84,7 @@ bool ServerJoin::connect(const std::string & server, int port, int id, int senso
   
   stringstream ss;
   ss << "Connecting " << server.c_str();
-  Serial.println(ss.str().c_str());
+  D_PRINTLN(ss.str().c_str());
   
   ServerCommunication & communication = m_reglerApp->communication;
   
@@ -105,7 +105,7 @@ bool ServerJoin::connect(const std::string & server, int port, int id, int senso
   m_reglerApp->id = status.id;
   
   if (!status) {
-      Serial.println("");
+      D_PRINTLN("");
       *response = m_reglerApp->page1 + "Server not connected!!!!" + m_reglerApp->page2;
   }
   
@@ -144,8 +144,7 @@ void ServerJoin::fillResponseHtml() {
     ss << "</form>\n";
 
     m_reglerApp->responseHTML = ss.str();
-    Serial.print(ss.str().c_str());
-    Serial.println("");
+    D_PRINTLN(ss.str().c_str());
 }
 
 void ServerJoin::enter(EspObject */*source*/, Event */*event*/)
