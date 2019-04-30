@@ -73,7 +73,7 @@ void ServerJoin::handleSubmit() {
   }
   string response;
   /*bool result = */
-  connect(arguments[SERVER_IP_STR], toInt(arguments[POINT_ID_STR]), toInt(arguments[SENSOR_ID_STR]), &response);
+  connect(arguments[SERVER_IP_STR], toInt(arguments[SERVER_PORT_STR]), toInt(arguments[POINT_ID_STR]), toInt(arguments[SENSOR_ID_STR]), &response);
   response += "\n";
   m_reglerApp->server->send(200, "text/html", response.c_str());
 }
