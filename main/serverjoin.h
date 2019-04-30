@@ -1,9 +1,8 @@
 #pragma once
-#include "espobject.h"
+#include "httphelper.h"
 
-class ReglerApp;
 struct EventCredentials;
-class ServerJoin : public EspObject
+class ServerJoin : public HttpHelper
 {
 public:
     ServerJoin(EspApp * app);
@@ -16,9 +15,6 @@ public:
     void fillResponseHtml();
     void restartAP();
     
-    std::string getResponseHtml();
-    
 private:
-    ReglerApp * m_reglerApp;
     EventPtr m_eventCredentials;
 };

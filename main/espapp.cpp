@@ -1,5 +1,6 @@
 #include <sstream>
 
+#include "logger.h"
 #include "espapp.h"
 #include "esp_headers.h"
 #include "esp_task_wdt.h"

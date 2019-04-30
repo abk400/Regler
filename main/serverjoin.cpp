@@ -23,16 +23,9 @@ static const char * const SERVER_PORT_STR = "server_port";
 static const char * const SENSOR_ID_STR= "server_sensor_id";
 static const char * const POINT_ID_STR= "server_point_id";
 ServerJoin::ServerJoin(EspApp *app):
-    EspObject(SERVER_CONNECTING, app)
+    HttpHelper(SERVER_CONNECTING, app)
 {
-    m_reglerApp = static_cast<ReglerApp*>(app);
 }
-
-
-string ServerJoin::getResponseHtml() {
-  return "<html><body>" + m_reglerApp->responseHTML + "</html></body>";
-}
-
 
 void ServerJoin::handleServerJoin() {
   D_PRINTLN("ServerJoin::handleServerJoin");
@@ -119,9 +112,9 @@ void ServerJoin::fillResponseHtml() {
   
     stringstream ss;
 
-
+    Storage * storage= Storage::instance();
     string server_ip = storage->read(SERVER_IP_STR);
-    int server_port    = storage->read_int(SERVER_PORT_STR);
+    int server_port  = storage->read_int(SERVER_PORT_STR);
     int sensor_id    = storage->read_int(SENSOR_ID_STR);
     int point_id     = storage->read_int(POINT_ID_STR);
     

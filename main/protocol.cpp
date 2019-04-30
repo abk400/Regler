@@ -1,6 +1,7 @@
 #define ARDUINOJSON_ENABLE_STD_STREAM 1
 #define ARDUINOJSON_ENABLE_STD_STRING 1
 
+#include "logger.h"
 #include "protocol.h"
 #include "ArduinoJson.h"
 #include "ArduinoJson/Serialization/StreamPrintAdapter.hpp"
@@ -94,9 +95,6 @@ bool Protocol::parseResponseMessage(const std::string &message, ResponseBlock *b
     
     return true;
 }
-
-
-
 
 JoinStatus ServerCommunication::join(std::string ip_str, int port, int point, int sensor, std::string * debug)
 {

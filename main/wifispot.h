@@ -1,8 +1,8 @@
-#include "espobject.h"
+#include "httphelper.h"
 
 class ReglerApp;
 struct EventCredentials;
-class WifiSpot : public EspObject
+class WifiSpot : public HttpHelper
 {
 public:
     WifiSpot(EspApp * app);
@@ -13,15 +13,11 @@ public:
     void handleRoot();
     void handleRefresh();
     void handleConnect();
-//    void connectWifi();
     void fillResponseHtml();
     void restartAP();
     void refresh();
-    std::string getResponseHtml();
-//    void connectWifi(const std::string & ssid, const std::string & password );
     
 private:
-    ReglerApp * m_reglerApp;
     EventPtr m_eventCredentials;
     
 };
