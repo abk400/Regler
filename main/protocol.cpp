@@ -47,6 +47,37 @@ string Protocol::entranceEventMessage(const std::list<EntranceEvent> &entr)
     return str;
 }
 
+string Protocol::entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out)
+{
+    string str;
+
+    DynamicJsonBuffer buffer;
+    JsonObject& root = buffer.createObject();
+    root["type"] = "event";
+
+    JsonArray & array= root.createNestedArray("data");
+//    for (const EntranceEvent & event : entr) {
+    if (entr_in.count > 0) {
+        JsonObject& nested = array.createNestedObject();
+        nested["id"] = (int) entr_in.id;
+        nested["time"] = (long)entr_in.stamp;
+        nested["direction"] = entr_in.dir;
+        nested["count"] = entr_out.count;
+    }
+
+    if (entr_out.count > 0) {
+        JsonObject& nested = array.createNestedObject();
+        nested["id"] = (int) entr_out.id;
+        nested["time"] = (long)entr_out.stamp;
+        nested["direction"] = entr_out.dir;
+        nested["count"] = entr_out.count;
+    }
+
+    root.printTo(str);
+    printf("entranceEventMessage %s\n", str.c_str());
+    return str;
+}
+
 bool Protocol::parseResponseMessage(const std::string &message, ResponseBlock *block)
 {
     DynamicJsonBuffer buffer;
@@ -69,18 +100,21 @@ bool Protocol::parseResponseMessage(const std::string &message, ResponseBlock *b
 
 JoinStatus ServerCommunication::join(std::string ip_str, int port, int point, int sensor, std::string * debug)
 {
-  IPAddress ip;
-  ip.fromString(ip_str.c_str());
+  m_ip.fromString(ip_str.c_str());
+  m_port = port;
   JoinStatus status;
-  if (client.connect(ip, port)) {
+  if (client.connect(m_ip, m_port)) {
       Serial.println("Connected");
       stringstream ss2;
       ss2 << "Connecting " << ip_str << " succeeded";
       string message = Protocol::registrationMessage(point, sensor);
       client.println(message.c_str());
       ResponseBlock response = receiveResponse(debug);
-      status.id = response.id;  
+      status.id = response.id;
+      ss2 << "id: " << status.id;
+      client.stop();
   }
+
   return status;
 }
 
@@ -88,27 +122,69 @@ ReceiveStatus ServerCommunication::entranceEventMessage(const std::list<Entrance
 {
     std::string eventsBuffer = Protocol::entranceEventMessage(entr);
     
-    
     client.println(eventsBuffer.c_str());
     std::string debug;
     ResponseBlock response = receiveResponse(&debug);
+
     return response.result == 0;
 }
+
+ReceiveStatus ServerCommunication::entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out)
+{
+    bool result = false;
+    std::string eventsBuffer = Protocol::entranceEventMessage(entr_in, entr_out);
+
+    if (client.connect(m_ip, m_port)) {
+        Serial.println("Connected");
+        client.println(eventsBuffer.c_str());
+        std::string debug;
+        ResponseBlock response = receiveResponse(&debug);
+        client.stop();
+        result = response.result==0;
+    } else {
+        Serial.println("Can't connect");
+    }
+
+    //! @todo if result not ok, save data
+
+    return result;
+}
+
+//#define MINUTES_15 (15*60)
+
+//void saveEntranceEvents(const std::list<EntranceEvent> &entr) {
+////    std::list<EntranceEvent> toSave;
+//    std::map<int,EntranceEvent> toSave[2];
+
+//    for (const EntranceEvent & event : entr) {
+//        JsonObject& nested = array.createNestedObject();
+//        nested["id"] = (int) event.id;
+//        nested["time"] = (long)event.stamp;
+//        nested["direction"] = (event.dir == EntranceEvent::IN) ? 0 : 1;
+
+//        toSave[event.dir][(long)(event.stamp/MINUTES_15)] =  ;
+//    }
+
+//}
 
 ResponseBlock ServerCommunication::receiveResponse(std::string * debug)
 {
     ResponseBlock block;
 
     unsigned char buffer[1024] = "";
-    int clients = 0;
+    int size = -1;
     for (int timeout = 5; timeout > 0; timeout--) {
-        clients = client.available();
-          Serial.println("Sleeping 1 sec...");
-          std::this_thread::sleep_for (std::chrono::seconds(1));
+        if (client.available() > 0) {
+            size = client.read(buffer, sizeof(buffer) - 1);
+            break;
+        }
+
+        Serial.println("Sleeping 1 sec...");
+        std::this_thread::sleep_for (std::chrono::seconds(1));
     }
     Serial.printf("Available %d\n", client.available());
 
-    int size = (client.available() > 0) ? client.read(buffer, sizeof(buffer) - 1) : -1;
+//    int size = (client.available() > 0) ? client.read(buffer, sizeof(buffer) - 1) : -1;
     stringstream ss3;
     if (size != -1) {
       buffer[size] = '\0';
@@ -133,4 +209,5 @@ EntranceEvent::EntranceEvent(EntranceEvent::Direction dir, int64_t stamp):
     static int id_counter = 0;
     
     id_counter ++;
+    count = 0;
 }
