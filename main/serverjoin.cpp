@@ -19,6 +19,7 @@
 using namespace std;
 
 static const char * const SERVER_IP_STR = "server_ip";
+static const char * const SERVER_PORT_STR = "server_port";
 static const char * const SENSOR_ID_STR= "server_sensor_id";
 static const char * const POINT_ID_STR= "server_point_id";
 ServerJoin::ServerJoin(EspApp *app):
@@ -77,7 +78,7 @@ void ServerJoin::handleSubmit() {
   m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
-bool ServerJoin::connect(const std::string & server, int id, int sensor_id, std::string * response)
+bool ServerJoin::connect(const std::string & server, int port, int id, int sensor_id, std::string * response)
 { 
   
   
@@ -87,14 +88,16 @@ bool ServerJoin::connect(const std::string & server, int id, int sensor_id, std:
   
   ServerCommunication & communication = m_reglerApp->communication;
   
-  JoinStatus status = communication.join(server, 54115, id, sensor_id, response);
+  JoinStatus status = communication.join(server, port, id, sensor_id, response);
   
   Storage * storage = Storage::instance();
   if (status) {
       m_newEvent = std::make_shared<Event>(SERVER_CONNECTED, this);
       storage->write(SERVER_IP_STR, server);
+      storage->write_int(SERVER_PORT_STR, port);
       storage->write_int(POINT_ID_STR, id);
       storage->write_int(SENSOR_ID_STR, sensor_id);
+
   } else {
       m_newEvent = std::make_shared<Event>(SERVER_ERROR, this);
       storage->write(SERVER_IP_STR, "");
@@ -115,12 +118,27 @@ void ServerJoin::fillResponseHtml() {
     string ip_string = app->m_local_ip.toString().c_str();
   
     stringstream ss;
+
+
+    string server_ip = storage->read(SERVER_IP_STR);
+    int server_port    = storage->read_int(SERVER_PORT_STR);
+    int sensor_id    = storage->read_int(SENSOR_ID_STR);
+    int point_id     = storage->read_int(POINT_ID_STR);
     
     ss << "Local IP: " << ip_string << "<br>\n";
     ss << "<form action='/connect_server'>\n";
-    ss << "server: <input type=text name=" << SERVER_IP_STR << "><br>\n";
-    ss << "point id number: <input type=numer name=" << POINT_ID_STR << "><br>\n";
-    ss << "sensor id number: <input type=numer name=" << SENSOR_ID_STR << " ><br>\n";
+    ss << "IP: <input type=text name=" << SERVER_IP_STR;
+    ss << " value=\"" << server_ip << "\"";
+    ss << "><br>\n";
+    ss << "port: <input type=number name=" << SERVER_PORT_STR;
+    ss << " value=\"" << server_port << "\"";
+    ss << "><br>\n";
+    ss << "Point id: <input type=numer name=" << POINT_ID_STR;
+    ss << " value=\"" << point_id << "\"";
+    ss << "><br>\n";
+    ss << "Sensor id: <input type=numer name=" << SENSOR_ID_STR;
+    ss << " value=\"" << sensor_id << "\"";
+    ss << "><br>\n";
     
     ss << "<input type=submit value=Submit>";
     ss << "</form>\n";
@@ -133,13 +151,14 @@ void ServerJoin::fillResponseHtml() {
 void ServerJoin::enter(EspObject */*source*/, Event */*event*/)
 {
   Storage * storage = Storage::instance();
-  string server_ip = storage->read("server_ip");
+  string server_ip = storage->read(SERVER_IP_STR);
+  int server_port  = storage->read_int(SERVER_PORT_STR);
   int sensor_id    = storage->read_int(SENSOR_ID_STR);
   int point_id     = storage->read_int(POINT_ID_STR);
   
   if (NOT server_ip.empty()) {
       std::string response;
-      bool result = connect(server_ip, point_id, sensor_id, &response);
+      bool result = connect(server_ip, server_port, point_id, sensor_id, &response);
       if (result) {
         return ;
       }

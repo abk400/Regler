@@ -12,7 +12,7 @@ public:
     void handleServerJoin();
     void handleRefresh();
     void handleSubmit();
-    bool connect(const std::string & server, int id, int sensor_id, std::string *response);
+    bool connect(const std::string & server, int port, int id, int sensor_id, std::string *response);
     void fillResponseHtml();
     void restartAP();
     
