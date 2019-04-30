@@ -11,18 +11,18 @@
 extern "C" void app_main()
 {
     Serial.begin(115200);
-    Serial.println("P1");
+    D_PRINTLN("P1");
     Serial.flush();
     delay(1000);
 
     ReglerApp app;
     Serial.flush();
-    Serial.println("P2");
+    D_PRINTLN("P2");
     TObjectTransitionMap transitions(OBJECT_COUNT);
     for (std::vector<ObjectType> & obj: transitions) {
         obj.resize(EVENT_COUNT);
     }
-    Serial.println("-P3");
+    D_PRINTLN("-P3");
     
     transitions[INITIAL][INITIAL_TRANSITION] = WIFI_SPOT;
     transitions[WIFI_SPOT][WIFI_CREDENTIALS] = WIFI_CONNECTING;
@@ -31,13 +31,13 @@ extern "C" void app_main()
     transitions[SERVER_CONNECTING][SERVER_CONNECTED] = MONITORING;
     transitions[SERVER_CONNECTING][SERVER_ERROR] = SERVER_CONNECTING;
     
-    Serial.println("P4");
+    D_PRINTLN("P4");
     app.register_map(transitions);
     app.register_class(new WifiSpot(&app));
     app.register_class(new Connecting(&app));
     app.register_class(new Initial(&app));
     app.register_class(new Monitoring(&app));
     app.register_class(new ServerJoin(&app));
-    Serial.println("P5");
+    D_PRINTLN("P5");
     app.run();
 }

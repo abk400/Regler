@@ -1,4 +1,5 @@
 #pragma once
+#include "logger.h"
 #include "espapp.h"
 #include "esp_headers.h"
 #include "protocol.h"
@@ -17,6 +18,8 @@ public:
     std::unique_ptr<WebServer> server;
 
     std::string responseHTML;
+
+    std::string responseHTML_Status;
     
     std::string page;
     std::string page1;
