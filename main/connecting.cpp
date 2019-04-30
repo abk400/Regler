@@ -25,10 +25,10 @@ void Connecting::enter(EspObject */*source*/, Event *event)
 
 
 void Connecting::connectWifi(const string & ssid, const string & password ) {
-    Serial.println();
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid.c_str());
+    D_PRINTLN();
+    D_PRINTLN();
+    D_PRINT("Connecting to ");
+    D_PRINTLN(ssid.c_str());
     delay(3000);
 
     WiFi.begin(ssid.c_str(), password.c_str());
@@ -36,9 +36,9 @@ void Connecting::connectWifi(const string & ssid, const string & password ) {
     int timeout = 50;
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
-        Serial.print(".");
+        D_PRINT(".");
         if (--timeout <= 0) {
-            Serial.println("WiFi not connected error");
+            D_PRINTLN("WiFi not connected error");
             
             m_newEvent = std::make_shared<Event>(WIFI_ERROR_CONNECTION, this);
             Storage * disk = Storage::instance();
@@ -46,10 +46,10 @@ void Connecting::connectWifi(const string & ssid, const string & password ) {
             return ;
         }
     }
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    D_PRINTLN("");
+    D_PRINTLN("WiFi connected");
+    D_PRINTLN("IP address: ");
+    D_PRINTLN(WiFi.localIP());
     ReglerApp * app = static_cast<ReglerApp *> (m_app);
     app->m_local_ip = WiFi.localIP();
     m_newEvent = std::make_shared<Event>(WIFI_CONNECTED, this);

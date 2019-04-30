@@ -104,7 +104,7 @@ JoinStatus ServerCommunication::join(std::string ip_str, int port, int point, in
   m_port = port;
   JoinStatus status;
   if (client.connect(m_ip, m_port)) {
-      Serial.println("Connected");
+      D_PRINTLN("Connected");
       stringstream ss2;
       ss2 << "Connecting " << ip_str << " succeeded";
       string message = Protocol::registrationMessage(point, sensor);
@@ -135,14 +135,14 @@ ReceiveStatus ServerCommunication::entranceEventMessage(const EntranceEvent &ent
     std::string eventsBuffer = Protocol::entranceEventMessage(entr_in, entr_out);
 
     if (client.connect(m_ip, m_port)) {
-        Serial.println("Connected");
+        D_PRINTLN("Connected");
         client.println(eventsBuffer.c_str());
         std::string debug;
         ResponseBlock response = receiveResponse(&debug);
         client.stop();
         result = response.result==0;
     } else {
-        Serial.println("Can't connect");
+        D_PRINTLN("Can't connect");
     }
 
     //! @todo if result not ok, save data
@@ -179,7 +179,7 @@ ResponseBlock ServerCommunication::receiveResponse(std::string * debug)
             break;
         }
 
-        Serial.println("Sleeping 1 sec...");
+        D_PRINTLN("Sleeping 1 sec...");
         std::this_thread::sleep_for (std::chrono::seconds(1));
     }
     Serial.printf("Available %d\n", client.available());

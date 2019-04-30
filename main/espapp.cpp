@@ -56,7 +56,7 @@ void EspApp::loop()
             ss << "Event: " << Event::objectsNames[ptr->m_type] << "\n";
             ss << EspObject::objectsNames[m_state->type()] << " ==> " << EspObject::objectsNames[obj->type()] << "\n";
             
-            Serial.println(ss.str().c_str());
+            D_PRINTLN(ss.str().c_str());
             
             obj->enter(m_state, &(*ptr));
             m_state = obj;

@@ -45,16 +45,16 @@ string WifiSpot::getResponseHtml() {
 }
 
 void WifiSpot::refresh() {
-  Serial.println("refresh");
+  D_PRINTLN("refresh");
   fillResponseHtml();
-  Serial.println("Exit scan mode");
+  D_PRINTLN("Exit scan mode");
 
   WiFi.softAPdisconnect();
   WiFi.disconnect(true, true);
   delay(100);
   WiFi.reconnect();
   
-  Serial.println("AP mode enter");
+  D_PRINTLN("AP mode enter");
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(m_reglerApp->apIP, m_reglerApp->apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP("ReglerAcessPoint");
@@ -63,7 +63,7 @@ void WifiSpot::refresh() {
 }
 
 void WifiSpot::handleRefresh() {
-  Serial.println("REFRESH");
+  D_PRINTLN("REFRESH");
   m_reglerApp->server->send(200, "text/html", m_reglerApp->page.c_str());
   delay(3000);
   refresh();
@@ -72,14 +72,14 @@ void WifiSpot::handleRefresh() {
 }
 
 void WifiSpot::handleRoot() {
-  Serial.println("ROOT");
+  D_PRINTLN("ROOT");
   
   stringstream ss;
   ss << getResponseHtml() << endl;            
   
   stringstream printss;
   printss << "Data returned to client: \n" << ss.str();
-  Serial.println(printss.str().c_str());
+  D_PRINTLN(printss.str().c_str());
   
   m_reglerApp->server->send(200, "text/html", ss.str().c_str());
 }
@@ -118,7 +118,7 @@ void WifiSpot::handleConnect() {
   stringstream ss;
   
   ss << "ssid " << ssid << "\npassword " << password;
-  Serial.println(ss.str().c_str());
+  D_PRINTLN(ss.str().c_str());
 
   m_eventCredentials = make_shared<EventCredentials>(this, arguments);
 }
@@ -126,7 +126,7 @@ void WifiSpot::handleConnect() {
 
 void WifiSpot::fillResponseHtml() {
   stringstream ss;
-  Serial.println("W-1");
+  D_PRINTLN("W-1");
   
   TaskStatus_t status[10];
   uint32_t runTime;
@@ -137,27 +137,27 @@ void WifiSpot::fillResponseHtml() {
       
       ta << "task[" << i << "].usStackHighWaterMark=" << status[i].usStackHighWaterMark << "\n";
   }
-  Serial.println(ta.str().c_str());
+  D_PRINTLN(ta.str().c_str());
   
   WiFi.mode(WIFI_STA);
   delay(100);
-  Serial.println("W0");
+  D_PRINTLN("W0");
   Serial.flush();
   WiFi.disconnect();
   delay(100);
-  Serial.println("W1");
-  Serial.println("scan start");
+  D_PRINTLN("W1");
+  D_PRINTLN("scan start");
 
     // WiFi.scanNetworks will return the number of networks found
     int n = WiFi.scanNetworks();
-    Serial.println("scan done");
+    D_PRINTLN("scan done");
     ss << "<h1>Available networks:</h1>\n";
     
     if (n == 0) {
-        Serial.println("no networks found");
+        D_PRINTLN("no networks found");
     } else {
         Serial.print(n);
-        Serial.println(" networks found");
+        D_PRINTLN(" networks found");
         set<string> networks;
         for (int i = 0; i < n; ++i) {
           networks.insert(WiFi.SSID(i).c_str());
@@ -176,7 +176,7 @@ void WifiSpot::fillResponseHtml() {
     }
     m_reglerApp->responseHTML = ss.str();
     Serial.print(ss.str().c_str());
-    Serial.println("");
+    D_PRINTLN("");
 }
 
 void WifiSpot::restartAP(){
@@ -190,7 +190,7 @@ void WifiSpot::restartAP(){
 EventPtr WifiSpot::loop() {
     
     if (m_eventCredentials) {
-        Serial.println("####Generating credentials");
+        D_PRINTLN("####Generating credentials");
         auto res = m_eventCredentials;
         m_eventCredentials = EventPtr();
         return res;
@@ -202,7 +202,7 @@ EventPtr WifiSpot::loop() {
 void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
 {
   
-  Serial.println("Starting..");
+  D_PRINTLN("Starting..");
 
   refresh();
 
@@ -212,7 +212,7 @@ void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
   m_reglerApp->server->onNotFound(std::bind(&WifiSpot::handleNotFound, this));
 
   m_reglerApp->server->begin();
-  Serial.println("HTTP server started");
+  D_PRINTLN("HTTP server started");
   
   Storage * disk = Storage::instance();
   string ssid = disk->read("network");
