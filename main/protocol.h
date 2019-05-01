@@ -24,6 +24,8 @@ struct EntranceEvent {
     int count;
 };
 
+typedef std::list<EntranceEvent> EntranceEventContainer;
+
 
 
 struct Protocol

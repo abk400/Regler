@@ -71,7 +71,7 @@ void ServerJoin::handleSubmit() {
   m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
-bool ServerJoin::connect(const std::string & server, int port, int id, int sensor_id, std::string * response)
+bool ServerJoin::connect(const std::string & server, int port, int point_id, int sensor_id, std::string * response)
 { 
   
   
@@ -81,14 +81,14 @@ bool ServerJoin::connect(const std::string & server, int port, int id, int senso
   
   ServerCommunication & communication = m_reglerApp->communication;
   
-  JoinStatus status = communication.join(server, port, id, sensor_id, response);
+  JoinStatus status = communication.join(server, port, point_id, sensor_id, response);
   
   Storage * storage = Storage::instance();
   if (status) {
       m_newEvent = std::make_shared<Event>(SERVER_CONNECTED, this);
       storage->write(SERVER_IP_STR, server);
       storage->write_int(SERVER_PORT_STR, port);
-      storage->write_int(POINT_ID_STR, id);
+      storage->write_int(POINT_ID_STR, point_id);
       storage->write_int(SENSOR_ID_STR, sensor_id);
 
   } else {

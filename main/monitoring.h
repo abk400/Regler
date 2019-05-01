@@ -1,5 +1,6 @@
 #include "espobject.h"
 #include "door.h"
+#include "protocol.h"
 
 class Monitoring : public EspObject
 {
@@ -15,5 +16,7 @@ public:
     
 private:
     DoorAccess m_doorAccess;
+
+    EntranceEventContainer m_ee_container;
 };
 

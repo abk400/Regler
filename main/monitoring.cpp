@@ -1,7 +1,9 @@
 #include "monitoring.h"
 #include "esp_headers.h"
-#include "protocol.h"
 #include "reglerapp.h"
+#include "logger.h"
+
+#define MAX_SAVED_EVENTS 240
 
 Monitoring::Monitoring(EspApp *app):
     EspObject(MONITORING, app)
@@ -35,13 +37,33 @@ void Monitoring::queryEvents()
                 //toSend.push_back(entrance);
                 if (message.delta == -1) {
                     entrance_out.count+= 1;
+                    reglerApp->statistic.out++;
                 } else {
                     entrance_in.count+= 1;
+                    reglerApp->statistic.in++;
                 }
 
             }
             ReglerApp* reglerApp = static_cast<ReglerApp*>(m_app);
-            reglerApp->communication.entranceEventMessage(entrance_in, entrance_out);
+            bool result = reglerApp->communication.entranceEventMessage(entrance_in, entrance_out);
+
+            reglerApp->statistic.active = result;
+
+            if (result && !m_ee_container.empty()) {
+                result = reglerApp->communication.entranceEventMessage(m_ee_container);
+                if (result)
+                    m_ee_container.clear();
+            } else {
+                reglerApp->statistic.failed_req++;
+                m_ee_container.push_back(entrance_in);
+                m_ee_container.push_back(entrance_out);
+
+                if (m_ee_container.count() > MAX_SAVED_EVENTS) {
+                    D_PRINTLN("EntranceEvent container full.");
+                    m_ee_container.pop_front();
+                    m_ee_container.pop_front();
+                }
+            }
         }
     }
 }

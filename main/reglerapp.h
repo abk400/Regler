@@ -20,6 +20,14 @@ public:
     std::string responseHTML;
 
     std::string responseHTML_Status;
+    struct sStatistic {
+        uint in = 0;
+        uint out = 0;
+        uint failed_req = 0;
+        bool active = false;
+    };
+
+    sStatistic statistic;
     
     std::string page;
     std::string page1;
