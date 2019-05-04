@@ -27,13 +27,14 @@ make defconfig
 make menuconfig
 # Build
 make
-# Monitor
+# Flash (Compile + Upload )
+make flash
+# Monitor COM PORT
 #   Flash All:  Ctrl+T Ctrl+F
 #   Flash App:  Ctrl+T Ctrl+A
 #   Reset:      Ctrl+T Ctrl+R
 make monitor
-# Flash
-make flash
+
 ```
 
 ## GPIO configuration
