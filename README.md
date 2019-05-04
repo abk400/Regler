@@ -27,7 +27,7 @@ make defconfig
 make menuconfig
 # Build
 make
-# Monotir
+# Monitor
 #   Flash All:  Ctrl+T Ctrl+F
 #   Flash App:  Ctrl+T Ctrl+A
 #   Reset:      Ctrl+T Ctrl+R
