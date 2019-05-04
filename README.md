@@ -39,8 +39,8 @@ make flash
 ## GPIO configuration
 GPIO num | Description | Type
 ------------ | ------------- | -------------
-GPIO25 | LED transmitter 1 | Digital Output
-GPIO27 | LED transmitter 2 | Digital Output
+GPIO25 | none | Digital Output
+GPIO27 | LED transmitter 1+2 | Digital Output
 GPIO32 | LED receiver 1 | Digital Input
 GPIO35 | LED receiver 2 | Digital Input
 GPIO26 | Barrier speaker | Analog Output
