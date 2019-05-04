@@ -1,4 +1,4 @@
-# regler
+# REGLER
 
 ## Prerequisites
 
