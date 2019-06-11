@@ -1,5 +1,6 @@
 #include "door.h"
 #include "esp_headers.h"
+#include "logger.h"
 
 #include <string>
 #include <map>
@@ -110,6 +111,8 @@ void Door::start()
 
 void Door::setup()
 {
+    D_PRINTLN("Door::setup");
+
    m_leds[0].pin_frequency = 25;
    m_leds[1].pin_frequency = 27;
    

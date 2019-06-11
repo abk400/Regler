@@ -1,6 +1,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#define _DEBUG_
+
 // Define where debug output will be printed.
 #define D_PRINTER Serial
 
