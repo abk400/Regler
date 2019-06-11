@@ -27,14 +27,12 @@ void Monitoring::queryEvents()
         m_doorAccess.checkOutFromMain(&queue);
             
         if (NOT queue.empty()) {
-//            std::list<EntranceEvent> toSend;
+            ReglerApp* reglerApp = static_cast<ReglerApp*>(m_app);
 
             EntranceEvent entrance_in(EntranceEvent::IN, now*60);
             EntranceEvent entrance_out(EntranceEvent::OUT, now*60);
 
             for (DoorMessage & message : queue) {
-                //EntranceEvent entrance(message.delta == -1 ? EntranceEvent::OUT : EntranceEvent::IN, message.timestamp);
-                //toSend.push_back(entrance);
                 if (message.delta == -1) {
                     entrance_out.count+= 1;
                     reglerApp->statistic.out++;
@@ -42,11 +40,8 @@ void Monitoring::queryEvents()
                     entrance_in.count+= 1;
                     reglerApp->statistic.in++;
                 }
-
             }
-            ReglerApp* reglerApp = static_cast<ReglerApp*>(m_app);
             bool result = reglerApp->communication.entranceEventMessage(entrance_in, entrance_out);
-
             reglerApp->statistic.active = result;
 
             if (result && !m_ee_container.empty()) {
@@ -55,10 +50,12 @@ void Monitoring::queryEvents()
                     m_ee_container.clear();
             } else {
                 reglerApp->statistic.failed_req++;
-                m_ee_container.push_back(entrance_in);
-                m_ee_container.push_back(entrance_out);
+                if (entrance_in.count > 0)
+                    m_ee_container.push_back(entrance_in);
+                if (entrance_out.count > 0)
+                    m_ee_container.push_back(entrance_out);
 
-                if (m_ee_container.count() > MAX_SAVED_EVENTS) {
+                if (m_ee_container.size() > MAX_SAVED_EVENTS) {
                     D_PRINTLN("EntranceEvent container full.");
                     m_ee_container.pop_front();
                     m_ee_container.pop_front();

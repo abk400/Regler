@@ -21,9 +21,9 @@ public:
 
     std::string responseHTML_Status;
     struct sStatistic {
-        uint in = 0;
-        uint out = 0;
-        uint failed_req = 0;
+        int in = 0;
+        int out = 0;
+        int failed_req = 0;
         bool active = false;
     };
 
