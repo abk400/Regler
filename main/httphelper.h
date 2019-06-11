@@ -10,8 +10,9 @@ public:
     HttpHelper(ObjectType type, EspApp *app);
     virtual void enter(EspObject * source, Event * event) = 0;
 
-    std::string getResponseHtml();
+    void getResponseHtml(std::string &str);
 
+    std::string getStatisticHtml();
 protected:
     ReglerApp * m_reglerApp;
 };

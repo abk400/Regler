@@ -49,14 +49,14 @@ void WifiSpot::handleRefresh() {
 void WifiSpot::handleRoot() {
   D_PRINTLN("ROOT");
   
-  stringstream ss;
-  ss << getResponseHtml() << endl;            
+  std::string html;
+  getResponseHtml(html);
   
-  stringstream printss;
-  printss << "Data returned to client: \n" << ss.str();
-  D_PRINTLN(printss.str().c_str());
+//  stringstream printss;
+//  printss << "Data returned to client: \n" << html;
+//  D_PRINTLN(printss.str().c_str());
   
-  m_reglerApp->server->send(200, "text/html", ss.str().c_str());
+  m_reglerApp->server->send(200, "text/html", html.c_str());
 }
 
 void WifiSpot::handleNotFound() {

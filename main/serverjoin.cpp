@@ -30,14 +30,14 @@ ServerJoin::ServerJoin(EspApp *app):
 void ServerJoin::handleServerJoin() {
   D_PRINTLN("ServerJoin::handleServerJoin");
   
-  stringstream ss;
-  ss << getResponseHtml() << endl;            
+  std::string html;
+  getResponseHtml(html);
   
-  stringstream printss;
-  printss << "Data returned to client: \n" << ss.str();
-  D_PRINTLN(printss.str().c_str());
+//  stringstream printss;
+//  printss << "Data returned to client: \n" << html;
+//  D_PRINTLN(printss.str().c_str());
   
-  m_reglerApp->server->send(200, "text/html", ss.str().c_str());
+  m_reglerApp->server->send(200, "text/html", html.c_str());
 }
 
 void ServerJoin::handleNotFound() {
