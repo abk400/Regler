@@ -45,3 +45,6 @@ GPIO32 | LED receiver 1 | Digital Input
 GPIO35 | LED receiver 2 | Digital Input
 GPIO26 | Barrier speaker | Analog Output
 
+## Manual Flash
+python /home/USER/esp/esp-idf/components/esptool_py/esptool/esptool.py --chip esp32 --port COM4 --baud 115200 --before default_reset --after hard_reset write_flash -z --flash_mode dio --flash_freq 40m --flash_size detect 0xe000 /home/USER/esp/Regler-dev2/build/ota_data_initial.bin 0x1000 /home/USER/esp/Regler-dev2/build/bootloader/bootloader.bin 0x10000 /home/USER/esp/Regler-dev2/build/regler.bin 0x8000 /home/USER/esp/Regler-dev2/build/default.bin
+
