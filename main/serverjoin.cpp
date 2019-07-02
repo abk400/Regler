@@ -18,10 +18,10 @@
 
 using namespace std;
 
-static const char * const SERVER_IP_STR = "server_ip";
-static const char * const SERVER_PORT_STR = "server_port";
-static const char * const SENSOR_ID_STR= "server_sensor_id";
-static const char * const POINT_ID_STR= "server_point_id";
+static const char * const SERVER_IP_STR     = "srv_ip";
+static const char * const SERVER_PORT_STR   = "srv_port";
+static const char * const SENSOR_ID_STR     = "srv_sensor_id";
+static const char * const POINT_ID_STR      = "srv_point_id";
 ServerJoin::ServerJoin(EspApp *app):
     HttpHelper(SERVER_CONNECTING, app)
 {
