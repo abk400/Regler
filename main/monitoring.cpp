@@ -44,8 +44,10 @@ void Monitoring::queryEvents()
             bool result = reglerApp->communication.entranceEventMessage(entrance_in, entrance_out);
             reglerApp->statistic.active = result;
 
-            if (result && !m_ee_container.empty()) {
-                result = reglerApp->communication.entranceEventMessage(m_ee_container);
+            if (result) {
+                reglerApp->statistic.sended++;
+                if(!m_ee_container.empty())
+                    result = reglerApp->communication.entranceEventMessage(m_ee_container);
                 if (result)
                     m_ee_container.clear();
             } else {

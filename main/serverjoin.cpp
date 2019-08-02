@@ -71,10 +71,17 @@ void ServerJoin::handleSubmit() {
   m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
+void ServerJoin::handleReset() {
+
+  D_PRINTLN("ServerJoin::handleReset");
+  string response;
+  reset(&response);
+  response += "\n";
+  m_reglerApp->server->send(200, "text/html", response.c_str());
+}
+
 bool ServerJoin::connect(const std::string & server, int port, int point_id, int sensor_id, std::string * response)
 { 
-  
-  
   stringstream ss;
   ss << "Connecting " << server.c_str();
   D_PRINTLN(ss.str().c_str());
@@ -103,6 +110,23 @@ bool ServerJoin::connect(const std::string & server, int port, int point_id, int
   }
   
   return status;
+}
+
+bool ServerJoin::reset(string *response)
+{
+    Storage * storage = Storage::instance();
+    if (storage) {
+        m_newEvent = std::make_shared<Event>(INITIAL_TRANSITION, this);
+        // clear wifi connection
+        storage->write("network", ssid);
+        storage->write("pass", "");
+        // clear server data info
+        storage->write(SERVER_IP_STR, "");
+        storage->write_int(SERVER_PORT_STR, 0);
+        storage->write_int(POINT_ID_STR, 0);
+        storage->write_int(SENSOR_ID_STR, 0);
+    }
+    *response = m_reglerApp->page1 + "Device reset OK." + m_reglerApp->page2;
 }
 
 
@@ -136,6 +160,11 @@ void ServerJoin::fillResponseHtml() {
     ss << "<input type=submit value=Submit>";
     ss << "</form>\n";
 
+    // Reset button
+    ss << "<form action=\"/reset\">";
+    ss << "<input type=\"submit\" value=\"Reset\">";
+    ss << "</form>";
+
     m_reglerApp->responseHTML = ss.str();
     D_PRINTLN(ss.str().c_str());
 }
@@ -159,6 +188,7 @@ void ServerJoin::enter(EspObject */*source*/, Event */*event*/)
   fillResponseHtml();
   m_reglerApp->server->on("/server_join", std::bind(&ServerJoin::handleServerJoin, this));
   m_reglerApp->server->on("/connect_server", std::bind(&ServerJoin::handleSubmit, this));
+  m_reglerApp->server->on("/reset", std::bind(&ServerJoin::handleReset, this));
   m_reglerApp->server->onNotFound(std::bind(&ServerJoin::handleNotFound, this));
   
 }

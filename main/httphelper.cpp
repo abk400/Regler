@@ -78,7 +78,11 @@ std::string HttpHelper::getStatisticHtml() {
     if (m_reglerApp != nullptr) {
         bar << "<div class=\"bar\">  STATUS: <div class=\"statok\">";
         bar << (m_reglerApp->statistic.active ? "OK" : "OFFLINE");
-        bar << "</div>  &#x2591; IN:" << m_reglerApp->statistic.in << " &#x2591; OUT:" << m_reglerApp->statistic.out << " &#x2591; SENDED:0</div>";
+        bar << "</div>  &#x2591; IN:" << m_reglerApp->statistic.in
+                   << " &#x2591; OUT:" << m_reglerApp->statistic.out
+                   << " &#x2591; SENDED:" << m_reglerApp->statistic.sended
+                   << " &#x2591; FAILED:<div class=\"statok\">" << m_reglerApp->statistic.failed_req
+                   << "</div></div>";
     }
     return bar.str().c_str();
 }

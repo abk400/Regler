@@ -9,9 +9,10 @@ public:
      virtual void enter(EspObject * source, Event * event);
     void handleNotFound();
     void handleServerJoin();
-    void handleRefresh();
     void handleSubmit();
+    void handleReset();
     bool connect(const std::string & server, int port, int id, int sensor_id, std::string *response);
+    bool reset(std::string *response);
     void fillResponseHtml();
     void restartAP();
     

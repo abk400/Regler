@@ -24,6 +24,7 @@ public:
         int in = 0;
         int out = 0;
         int failed_req = 0;
+        int sended = 0;
         bool active = false;
     };
 
