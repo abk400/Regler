@@ -11,17 +11,17 @@ struct ResponseBlock
     int64_t begin;
 };
 
+enum Direction {
+    IN = 0,
+    OUT = 1,
+}uint8_t;
 
 struct EntranceEvent {
-    enum Direction {
-        IN = 0,
-        OUT = 1,
-    };
     EntranceEvent(Direction dir, int64_t stamp);
-    int64_t id;
-    Direction dir;
     int64_t stamp;
-    int count;
+    uint16_t id;
+    uint8_t count;
+    Direction dir;
 };
 
 typedef std::list<EntranceEvent> EntranceEventContainer;

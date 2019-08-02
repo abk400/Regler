@@ -204,8 +204,8 @@ EntranceEvent::EntranceEvent(EntranceEvent::Direction dir, int64_t stamp):
     dir(dir),
     stamp(stamp)
 {
-    static int id_counter = 0;
+    static uint16_t id_counter = 0;
     
-    id_counter ++;
+    id = id_counter++;
     count = 0;
 }
