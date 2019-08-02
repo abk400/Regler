@@ -12,6 +12,7 @@ public:
     void enter(EspObject * source, Event * event) override;
     
     void queryEvents();
+    void saveEvents();
     virtual EventPtr loop() override;
     
 private:

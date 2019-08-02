@@ -9,6 +9,9 @@ public:
     std::string read(std::string key);
     void write_int(std::string key, int32_t v);
     int32_t read_int(std::string key);
+
+    void write_EE(std::string key, const void *value, size_t length);
+    void clear_key(std::string key);
 private:
     void init();
     Storage();

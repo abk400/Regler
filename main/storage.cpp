@@ -61,6 +61,42 @@ void Storage::write_int(std::string key, int32_t v)
     printf("\nValue %d stored in NVS with key %s\n", value, parameter1);
 }
 
+void Storage::write_EE(std::string key, const void *value, size_t length)
+{
+    const char* parameter1 = key.c_str();
+//    int32_t value = v;
+
+    esp_err_t err = nvs_set_blob(my_handle, parameter1, value, length);
+    if(err != ESP_OK) {
+        printf("\nError in nvs_set_blob! (%04X)\n", err);
+        return;
+    }
+    err = nvs_commit(my_handle);
+    if(err != ESP_OK) {
+        printf("\nError in commit! (%04X)\n", err);
+        return;
+    }
+    printf("\nEE values stored in NVS with key %s\n", parameter1);
+}
+
+void Storage::clear_key(std::string key)
+{
+    const char* parameter1 = key.c_str();
+//    int32_t value = v;
+
+    esp_err_t err = nvs_erase_key(my_handle, parameter1);
+    if(err != ESP_OK) {
+        printf("\nError in nvs_erase_key! (%04X)\n", err);
+        return;
+    }
+    err = nvs_commit(my_handle);
+    if(err != ESP_OK) {
+        printf("\nError in commit! (%04X)\n", err);
+        return;
+    }
+    printf("\nKey %s erased in NVS\n", parameter1);
+}
+
 std::string Storage::read(std::string key)
 {
     
@@ -97,6 +133,24 @@ int32_t Storage::read_int(std::string key)
         return -1;
     }
     printf("\nValue stored in NVS for key %s is %d\n", parameter, value);
+    return value;
+}
+
+void* Storage::read_EE(std::string key)
+{
+    esp_err_t err;
+    const char* parameter = key.c_str();
+
+    size_t required_size;
+    err = nvs_get_blob(my_handle, parameter, NULL, &required_size);
+    void* array = malloc(required_size);
+    err = nvs_get_blob(my_handle, parameter, array, &required_size);
+    if(err != ESP_OK) {
+        if(err == ESP_ERR_NVS_NOT_FOUND) printf("\nKey %s not found\n", parameter);
+        else printf("\nError in nvs_get_blob! (%04X)\n", err);
+        return -1;
+    }
+    printf("\nGet array stored in NVS for key %s\n", parameter);
     return value;
 }
 

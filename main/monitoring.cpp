@@ -2,8 +2,11 @@
 #include "esp_headers.h"
 #include "reglerapp.h"
 #include "logger.h"
+#include "storage.h"
 
 #define MAX_SAVED_EVENTS 240
+
+static const char * const EE_CONTAINER_KEY     = "ee_container";
 
 Monitoring::Monitoring(EspApp *app):
     EspObject(MONITORING, app)
@@ -52,18 +55,34 @@ void Monitoring::queryEvents()
                     m_ee_container.clear();
             } else {
                 reglerApp->statistic.failed_req++;
-                if (entrance_in.count > 0)
-                    m_ee_container.push_back(entrance_in);
-                if (entrance_out.count > 0)
-                    m_ee_container.push_back(entrance_out);
 
-                if (m_ee_container.size() > MAX_SAVED_EVENTS) {
+                if (m_ee_container.size() < MAX_SAVED_EVENTS) {
+                    if (entrance_in.count > 0)
+                        m_ee_container.push_back(entrance_in);
+                    if (entrance_out.count > 0)
+                        m_ee_container.push_back(entrance_out);
+                } else {
                     D_PRINTLN("EntranceEvent container full.");
-                    m_ee_container.pop_front();
-                    m_ee_container.pop_front();
                 }
             }
         }
+    }
+}
+
+// sa
+void Monitoring::saveEvents()
+{
+    static int64_t last_poll = 0;
+
+    if (m_ee_container.empty())
+        return;
+
+    int64_t now = esp_timer_get_time() / (1000000*60);
+    if (now - last_poll > 60) {
+        last_poll = now;
+        Storage * storage= Storage::instance();
+        size_t size= m_ee_container.size() * sizeof(EntranceEvent);
+        storage->write_EE(EE_CONTAINER_KEY, (void*)&m_ee_container[0], size);
     }
 }
 

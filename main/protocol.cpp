@@ -27,7 +27,7 @@ std::string Protocol::registrationMessage(int point, int sensor)
     
 }
 
-string Protocol::entranceEventMessage(const std::list<EntranceEvent> &entr)
+string Protocol::entranceEventMessage(const EntranceEventContainer &entr)
 {
     string str;
     
@@ -116,7 +116,7 @@ JoinStatus ServerCommunication::join(std::string ip_str, int port, int point, in
   return status;
 }
 
-ReceiveStatus ServerCommunication::entranceEventMessage(const std::list<EntranceEvent> &entr)
+ReceiveStatus ServerCommunication::entranceEventMessage(const EntranceEventContainer &entr)
 {
     std::string eventsBuffer = Protocol::entranceEventMessage(entr);
     

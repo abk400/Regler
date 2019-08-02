@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <WiFiClient.h>
-#include <list>
+#include <vector>
 
 struct ResponseBlock
 {
@@ -24,7 +24,7 @@ struct EntranceEvent {
     Direction dir;
 };
 
-typedef std::list<EntranceEvent> EntranceEventContainer;
+typedef std::vector<EntranceEvent> EntranceEventContainer;
 
 
 
@@ -32,7 +32,7 @@ struct Protocol
 {
 public:
     static std::string registrationMessage(int point, int sensor);
-    static std::string entranceEventMessage(const std::list<EntranceEvent> & entr);
+    static std::string entranceEventMessage(const EntranceEventContainer &entr);
     static std::string entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out);
     static bool parseResponseMessage(const std::string & message, ResponseBlock * block);
 };
@@ -51,7 +51,7 @@ struct ServerCommunication
 {
 public:
     JoinStatus join(std::string ip_str,  int port, int point, int sensor, std::string * debug);
-    ReceiveStatus entranceEventMessage(const std::list<EntranceEvent> & entr);
+    ReceiveStatus entranceEventMessage(const EntranceEventContainer &entr);
     ReceiveStatus entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out);
     ResponseBlock receiveResponse(std::string * debug);
    
