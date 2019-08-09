@@ -201,8 +201,8 @@ ResponseBlock ServerCommunication::receiveResponse(std::string * debug)
 
 
 EntranceEvent::EntranceEvent(EntranceEvent::Direction dir, int64_t stamp):
-    dir(dir),
-    stamp(stamp)
+    stamp(stamp),
+    dir(dir)
 {
     static uint16_t id_counter = 0;
     

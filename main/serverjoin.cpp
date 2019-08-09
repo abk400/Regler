@@ -118,7 +118,6 @@ bool ServerJoin::reset(string *response)
     if (storage) {
         m_newEvent = std::make_shared<Event>(INITIAL_TRANSITION, this);
         // clear wifi connection
-        storage->write("network", ssid);
         storage->write("pass", "");
         // clear server data info
         storage->write(SERVER_IP_STR, "");
@@ -127,6 +126,8 @@ bool ServerJoin::reset(string *response)
         storage->write_int(SENSOR_ID_STR, 0);
     }
     *response = m_reglerApp->page1 + "Device reset OK." + m_reglerApp->page2;
+
+    return true;
 }
 
 
