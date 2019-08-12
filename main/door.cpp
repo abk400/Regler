@@ -272,7 +272,9 @@ void DoorAccess::startFromMain()
 {
     m_door.setEnterHandler([this] (int count, int delta) {
         Serial.printf("I: door handler count %d, delta %d\n", count, delta);
-        addFromThread(count, delta, esp_timer_get_time() / 1000000);
+        //addFromThread(count, delta, esp_timer_get_time() / 1000000);
+        time_t seconds = time(nullptr); // time since the Epoch
+        addFromThread(count, delta, seconds);
     });
     m_door.start();
 }
