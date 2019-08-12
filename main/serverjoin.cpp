@@ -4,6 +4,7 @@
 #include <map>
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
+#include <sys/time.h>
  
 #include <FreeRTOS.h>
 
@@ -66,7 +67,13 @@ void ServerJoin::handleSubmit() {
   }
   string response;
   /*bool result = */
-  connect(arguments[SERVER_IP_STR], toInt(arguments[SERVER_PORT_STR]), toInt(arguments[POINT_ID_STR]), toInt(arguments[SENSOR_ID_STR]), &response);
+  if (arguments.count(SERVER_IP_STR) &&
+      arguments.count(SERVER_PORT_STR) &&
+      arguments.count(POINT_ID_STR) &&
+      arguments.count(SENSOR_ID_STR))
+  {
+    connect(arguments[SERVER_IP_STR], toInt(arguments[SERVER_PORT_STR]), toInt(arguments[POINT_ID_STR]), toInt(arguments[SENSOR_ID_STR]), &response);
+  }
   response += "\n";
   m_reglerApp->server->send(200, "text/html", response.c_str());
 }
@@ -98,6 +105,8 @@ bool ServerJoin::connect(const std::string & server, int port, int point_id, int
       storage->write_int(POINT_ID_STR, point_id);
       storage->write_int(SENSOR_ID_STR, sensor_id);
 
+      // set current time from server
+      setTime(status.time);
   } else {
       m_newEvent = std::make_shared<Event>(SERVER_ERROR, this);
       storage->write(SERVER_IP_STR, "");
@@ -168,6 +177,16 @@ void ServerJoin::fillResponseHtml() {
 
     m_reglerApp->responseHTML = ss.str();
     D_PRINTLN(ss.str().c_str());
+}
+
+void ServerJoin::setTime(const int64_t &date)
+{
+    if (date > 0)
+    {
+        struct timeval tv;
+        tv.tv_sec = date;
+        settimeofday(&tv, NULL);
+    }
 }
 
 void ServerJoin::enter(EspObject */*source*/, Event */*event*/)

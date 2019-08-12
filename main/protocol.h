@@ -42,6 +42,7 @@ typedef bool ReceiveStatus;
 
 struct JoinStatus {
     int id = -1;
+    int64_t time;
     
     operator bool() const {
         return id != -1;

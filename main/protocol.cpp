@@ -60,18 +60,18 @@ string Protocol::entranceEventMessage(const EntranceEvent &entr_in, const Entran
 //    for (const EntranceEvent & event : entr) {
     if (entr_in.count > 0) {
         JsonObject& nested = array.createNestedObject();
-        nested["id"] = (int) entr_in.id;
-        nested["time"] = (long)entr_in.stamp;
-        nested["direction"] = entr_in.dir;
-        nested["count"] = entr_out.count;
+        nested["id"]        = (int) entr_in.id;
+        nested["time"]      = (long)entr_in.stamp;
+        nested["direction"] = (int)entr_in.dir;
+        nested["count"]     = (int)entr_in.count;
     }
 
     if (entr_out.count > 0) {
         JsonObject& nested = array.createNestedObject();
-        nested["id"] = (int) entr_out.id;
-        nested["time"] = (long)entr_out.stamp;
-        nested["direction"] = entr_out.dir;
-        nested["count"] = entr_out.count;
+        nested["id"]        = (int) entr_out.id;
+        nested["time"]      = (long)entr_out.stamp;
+        nested["direction"] = (int)entr_out.dir;
+        nested["count"]     = (int)entr_out.count;
     }
 
     root.printTo(str);
@@ -109,7 +109,8 @@ JoinStatus ServerCommunication::join(std::string ip_str, int port, int point, in
       client.println(message.c_str());
       ResponseBlock response = receiveResponse(debug);
       status.id = response.id;
-      ss2 << "id: " << status.id;
+      status.time = response.begin;
+      ss2 << "id: " << status.id << " time: " << status.time;
       client.stop();
   }
 

@@ -18,4 +18,6 @@ public:
     
 private:
     EventPtr m_eventCredentials;
+
+    void setTime(const int64_t &date);
 };
