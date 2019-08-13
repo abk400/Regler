@@ -1,7 +1,7 @@
 #include "reglerapp.h"
 
 ReglerApp::ReglerApp():
-    apIP(192, 168, 1, 1)
+    apIP(192, 168, 1, 1), communication(this)
 {
     server.reset(new WebServer(80));
     page1 = R"#(

@@ -3,6 +3,7 @@
 #include <WiFiClient.h>
 #include <list>
 
+class ReglerApp;
 
 struct ResponseBlock
 {
@@ -33,8 +34,8 @@ struct Protocol
 {
 public:
     static std::string registrationMessage(int point, int sensor);
-    static std::string entranceEventMessage(const std::list<EntranceEvent> & entr);
-    static std::string entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out);
+    static std::string entranceEventMessage(const int id_sensor, const std::list<EntranceEvent> & entr);
+    static std::string entranceEventMessage(const int id_sensor, const EntranceEvent &entr_in, const EntranceEvent &entr_out);
     static bool parseResponseMessage(const std::string & message, ResponseBlock * block);
 };
 
@@ -52,6 +53,8 @@ struct JoinStatus {
 struct ServerCommunication
 {
 public:
+    ServerCommunication(ReglerApp *app) : m_app(app) {}
+
     JoinStatus join(std::string ip_str,  int port, int point, int sensor, std::string * debug);
     ReceiveStatus entranceEventMessage(const std::list<EntranceEvent> & entr);
     ReceiveStatus entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out);
@@ -61,6 +64,7 @@ public:
     int64_t begin_stamp;
 
 private:
+    ReglerApp *m_app;
     IPAddress m_ip;
     int m_port;
 };

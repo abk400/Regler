@@ -6,6 +6,7 @@
 #include "ArduinoJson.h"
 #include "ArduinoJson/Serialization/StreamPrintAdapter.hpp"
 #include "esp_headers.h"
+#include "reglerapp.h"
 
 #include <thread>
 #include <sstream>
@@ -27,13 +28,14 @@ std::string Protocol::registrationMessage(int point, int sensor)
     
 }
 
-string Protocol::entranceEventMessage(const std::list<EntranceEvent> &entr)
+string Protocol::entranceEventMessage(const int id_device, const std::list<EntranceEvent> &entr)
 {
     string str;
     
     DynamicJsonBuffer buffer;
     JsonObject& root = buffer.createObject();
     root["type"] = "event";
+    root["id_device"] = id_device;
     
     JsonArray & array= root.createNestedArray("data");
     for (const EntranceEvent & event : entr) {
@@ -48,13 +50,14 @@ string Protocol::entranceEventMessage(const std::list<EntranceEvent> &entr)
     return str;
 }
 
-string Protocol::entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out)
+string Protocol::entranceEventMessage(const int id_device, const EntranceEvent &entr_in, const EntranceEvent &entr_out)
 {
     string str;
 
     DynamicJsonBuffer buffer;
     JsonObject& root = buffer.createObject();
     root["type"] = "event";
+    root["id_device"] = id_device;
 
     JsonArray & array= root.createNestedArray("data");
 //    for (const EntranceEvent & event : entr) {
@@ -68,7 +71,7 @@ string Protocol::entranceEventMessage(const EntranceEvent &entr_in, const Entran
 
     if (entr_out.count > 0) {
         JsonObject& nested = array.createNestedObject();
-        nested["id"]        = (int) entr_out.id;
+        nested["id"]        = (int) entr_o.id;
         nested["time"]      = (long)entr_out.stamp;
         nested["direction"] = (int)entr_out.dir;
         nested["count"]     = (int)entr_out.count;
@@ -119,7 +122,7 @@ JoinStatus ServerCommunication::join(std::string ip_str, int port, int point, in
 
 ReceiveStatus ServerCommunication::entranceEventMessage(const std::list<EntranceEvent> &entr)
 {
-    std::string eventsBuffer = Protocol::entranceEventMessage(entr);
+    std::string eventsBuffer = Protocol::entranceEventMessage(m_app->id, entr);
     
     client.println(eventsBuffer.c_str());
     std::string debug;
@@ -131,7 +134,7 @@ ReceiveStatus ServerCommunication::entranceEventMessage(const std::list<Entrance
 ReceiveStatus ServerCommunication::entranceEventMessage(const EntranceEvent &entr_in, const EntranceEvent &entr_out)
 {
     bool result = false;
-    std::string eventsBuffer = Protocol::entranceEventMessage(entr_in, entr_out);
+    std::string eventsBuffer = Protocol::entranceEventMessage(m_app->id, entr_in, entr_out);
 
     if (client.connect(m_ip, m_port)) {
         D_PRINTLN("Connected");
