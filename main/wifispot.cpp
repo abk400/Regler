@@ -66,7 +66,7 @@ void WifiSpot::handleWifi()
     D_PRINTLN("WifiSpot::handleWifi");
     string response;
     m_reglerApp->responseHTML = lastWifiPageHTML;
-    getResponseHtml(&response);
+    getResponseHtml(response);
     m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
