@@ -13,6 +13,8 @@ public:
     void handleRoot();
     void handleRefresh();
     void handleConnect();
+    void handleReset();
+    void handleStatus();
     void fillResponseHtml();
     void restartAP();
     void refresh();

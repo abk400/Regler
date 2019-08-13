@@ -98,6 +98,21 @@ void WifiSpot::handleConnect() {
   m_eventCredentials = make_shared<EventCredentials>(this, arguments);
 }
 
+void WifiSpot::handleReset() {
+    D_PRINTLN("WifiSpot::handleReset");
+    string response;
+    reset(&response);
+    response += "\n";
+    m_reglerApp->server->send(200, "text/html", response.c_str());
+}
+
+void WifiSpot::handleStatus() {
+    D_PRINTLN("WifiSpot::handleStatus");
+    string response;
+    fillStatusResponseHtml();
+    getResponseHtml(&response);
+    m_reglerApp->server->send(200, "text/html", response.c_str());
+}
 
 void WifiSpot::fillResponseHtml() {
   stringstream ss;
@@ -148,6 +163,10 @@ void WifiSpot::fillResponseHtml() {
         ss << "password: <input type=text name=pass>";
         ss << "<input type=submit value=Submit>";
         ss << "</form>\n";
+        // Reset button
+        ss << "<form action=\"/reset\">";
+        ss << "<input type=\"submit\" value=\"Reset\">";
+        ss << "</form>\n";
     }
     m_reglerApp->responseHTML = ss.str();
     Serial.print(ss.str().c_str());
@@ -176,14 +195,13 @@ EventPtr WifiSpot::loop() {
 
 void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
 {
-  
   D_PRINTLN("Starting..");
 
-  refresh();
-
   m_reglerApp->server->on("/", std::bind(&WifiSpot::handleRoot, this));
+  m_reglerApp->server->on("/status", std::bind(&WifiSpot::handleStatus, this));
   m_reglerApp->server->on("/refresh", std::bind(&WifiSpot::handleRefresh, this));
   m_reglerApp->server->on("/connect", std::bind(&WifiSpot::handleConnect, this));
+  m_reglerApp->server->on("/reset", std::bind(&WifiSpot::handleReset, this));
   m_reglerApp->server->onNotFound(std::bind(&WifiSpot::handleNotFound, this));
 
   m_reglerApp->server->begin();
@@ -192,10 +210,17 @@ void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
   Storage * disk = Storage::instance();
   string ssid = disk->read("network");
   string pass = disk->read("pass");
-  if (NOT ssid.empty()) {
+  if (NOT ssid.empty() && NOT pass.empty()) {
     std::map<string, string> args;
     args["network"] = ssid;
     args["pass"] = pass;
     m_eventCredentials = make_shared<EventCredentials>(this, args);
+
+    fillStatusResponseHtml();
+  }
+  else
+  {
+      m_reglerApp->lastErrMsg = "No WiFi point selected.";
+      refresh();
   }
 }

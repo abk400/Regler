@@ -29,6 +29,7 @@ public:
     };
 
     sStatistic statistic;
+    std::string lastErrMsg;
     
     std::string page;
     std::string page1;

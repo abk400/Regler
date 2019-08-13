@@ -42,6 +42,9 @@ static const char* HTML_HEAD_STYLE = \
             "margin: 0px auto;" \
             "width: 160px;" \
         "}" \
+        ".status {color: white; font-weight:bold}" \
+        ".status_ok {color: lime; font-weight:bold}" \
+        ".status_err {color: red; font-weight:bold}" \
     "</style>" \
 "</head>";
 
@@ -76,7 +79,9 @@ void HttpHelper::getResponseHtml(std::string &str)
 std::string HttpHelper::getStatisticHtml() {
     std::stringstream bar;
     if (m_reglerApp != nullptr) {
-        bar << "<div class=\"bar\">  STATUS: <div class=\"statok\">";
+        bar << "<div class=\"bar\">  ";
+        bar << "<div class=\"time\">" << getCurrentTimeString() << "</div>";
+        bar << " &#x2591; STATUS: <div class=\"statok\">";
         bar << (m_reglerApp->statistic.active ? "OK" : "OFFLINE");
         bar << "</div>  &#x2591; IN:" << m_reglerApp->statistic.in
                    << " &#x2591; OUT:" << m_reglerApp->statistic.out
@@ -85,4 +90,66 @@ std::string HttpHelper::getStatisticHtml() {
                    << "</div></div>";
     }
     return bar.str().c_str();
+}
+
+std::string HttpHelper::getCurrentTimeString()
+{
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
+    return std::string(buffer);
+}
+
+bool HttpHelper::reset(string *response)
+{
+    Storage * storage = Storage::instance();
+    if (storage) {
+        m_newEvent = std::make_shared<Event>(INITIAL_TRANSITION, this);
+        // clear wifi connection
+        storage->write("pass", "");
+        // clear server data info
+        storage->write(SERVER_IP_STR, "");
+        storage->write_int(SERVER_PORT_STR, 0);
+        storage->write_int(POINT_ID_STR, 0);
+        storage->write_int(SENSOR_ID_STR, 0);
+    }
+    *response = m_reglerApp->page1 + "Device reset OK." + m_reglerApp->page2;
+
+    return true;
+}
+
+bool HttpHelper::fillStatusResponseHtml()
+{
+    ReglerApp * app = static_cast<ReglerApp *> (m_app);
+    std::string ip_string = app->m_local_ip.toString().c_str();
+
+
+    Storage * storage= Storage::instance();
+    string server_ip = storage->read(SERVER_IP_STR);
+    int server_port  = storage->read_int(SERVER_PORT_STR);
+    int sensor_id    = storage->read_int(SENSOR_ID_STR);
+    int point_id     = storage->read_int(POINT_ID_STR);
+
+    std::stringstream ss;
+    ss << "Local IP: <span class=\"status\">" << ip_string << "</span><br><br>";
+    ss << "IP: <span class=\"status\">" << server_ip << ":" << server_port << "</span><br>";
+    ss << "Point id: <span class=\"status\">" << point_id << "</span><br>";
+    ss << "Sensor id: <span class=\"status\">" << sensor_id << "</span><br><br>";
+
+    if (m_reglerApp->statistic.active)
+    {
+        ss << "Status: <span class=\"status_ok\">OK</span><br>";
+    }
+    else
+    {
+        ss << "Status: <span class=\"status_err\">OFFLINE</span><br>";
+        ss << "Err: <span class=\"status_err\">" << app->lastErrMsg << "</span><br>";
+    }
+
+    m_reglerApp->responseHTML = ss.str();
 }

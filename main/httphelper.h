@@ -13,6 +13,11 @@ public:
     void getResponseHtml(std::string &str);
 
     std::string getStatisticHtml();
+    std::string getCurrentTimeString();
+
+
+    bool reset(std::string *response);
+    bool fillStatusResponseHtml();
 protected:
     ReglerApp * m_reglerApp;
 };

@@ -10,9 +10,9 @@ public:
     void handleNotFound();
     void handleServerJoin();
     void handleSubmit();
-    void handleReset();
+//    void handleReset();
     bool connect(const std::string & server, int port, int id, int sensor_id, std::string *response);
-    bool reset(std::string *response);
+
     void fillResponseHtml();
     void restartAP();
     

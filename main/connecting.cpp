@@ -39,6 +39,10 @@ void Connecting::connectWifi(const string & ssid, const string & password ) {
         D_PRINT(".");
         if (--timeout <= 0) {
             D_PRINTLN("WiFi not connected error");
+            app->lastErrMsg = "Can't connect to WiFi: ";
+            app->lastErrMsg += ssid;
+            app->lastErrMsg += " with pwd: ";
+            app->lastErrMsg += password;
             
             m_newEvent = std::make_shared<Event>(WIFI_ERROR_CONNECTION, this);
             Storage * disk = Storage::instance();
