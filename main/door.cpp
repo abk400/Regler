@@ -161,8 +161,8 @@ void Door::loop()
     }
 
     if (now - update > 1000 * 1000 * 5) {
-        D_PRINT_F("led0.barrier= %d\n", m_leds[0].barrier_now);
-        D_PRINT_F("led1.barrier= %d\n", m_leds[1].barrier_now);
+//        D_PRINT_F("led0.barrier= %d\n", m_leds[0].barrier_now);
+//        D_PRINT_F("led1.barrier= %d\n", m_leds[1].barrier_now);
         update = now;
     }
 
@@ -177,16 +177,16 @@ void Door::setEnterHandler(TLeaveEnter enterHandler)
 void Door::handleEvent(DoorEvent event)
 {
     DoorState state = doorStateMachine[m_doorState][event];
-    D_PRINT_F("I: current state: %s, came event %s\n", STATE_NAMES[m_doorState].c_str(), EVENT_NAMES[event].c_str());
+//    D_PRINT_F("I: current state: %s, came event %s\n", STATE_NAMES[m_doorState].c_str(), EVENT_NAMES[event].c_str());
     if (state == DoorStateNone) {
         m_beeper.start();
 //        Serial.println("E: invalid transition");
         return;
     }
     m_beeper.stop();
-    D_PRINT_F("I: state: %s ==> %s\n", STATE_NAMES[m_doorState].c_str(), STATE_NAMES[state].c_str());
+//    D_PRINT_F("I: state: %s ==> %s\n", STATE_NAMES[m_doorState].c_str(), STATE_NAMES[state].c_str());
     if (m_doorState == TRY_ENTER3 && state == MON) {
-        D_PRINT_F("I: m_enterHandler : %d,\n", (bool)m_enterHandler);
+//        D_PRINT_F("I: m_enterHandler : %d,\n", (bool)m_enterHandler);
         
         m_enterHandler(m_peopleCounter, 1);
         m_peopleCounter++;
@@ -271,8 +271,7 @@ void DoorAccess::checkOutFromMain(MessageQueue * result)
 void DoorAccess::startFromMain()
 {
     m_door.setEnterHandler([this] (int count, int delta) {
-        D_PRINT_F("I: door handler count %d, delta %d\n", count, delta);
-        //addFromThread(count, delta, esp_timer_get_time() / 1000000);
+//        D_PRINT_F("I: door handler count %d, delta %d\n", count, delta);
         //time_t seconds = time(nullptr); // time since the Epoch
         addFromThread(count, delta);
     });
