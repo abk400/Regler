@@ -184,9 +184,8 @@ ResponseBlock ServerCommunication::receiveResponse(std::string * debug)
         D_PRINTLN("Sleeping 1 sec...");
         std::this_thread::sleep_for (std::chrono::seconds(1));
     }
-    Serial.printf("Available %d\n", client.available());
+    D_PRINT_F("Available %d\n", client.available());
 
-//    int size = (client.available() > 0) ? client.read(buffer, sizeof(buffer) - 1) : -1;
     stringstream ss3;
     if (size != -1) {
       buffer[size] = '\0';
@@ -199,7 +198,8 @@ ResponseBlock ServerCommunication::receiveResponse(std::string * debug)
       ss3 << "Nothing responded !!!\n";
     }
     
-    *debug = ss3.str();
+
+    *debug = m_app->page1 + ss3.str() + m_app->page2;
     return block;
 }
 

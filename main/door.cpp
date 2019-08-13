@@ -180,7 +180,7 @@ void Door::handleEvent(DoorEvent event)
     Serial.printf("I: current state: %s, came event %s\n", STATE_NAMES[m_doorState].c_str(), EVENT_NAMES[event].c_str());
     if (state == DoorStateNone) {
         m_beeper.start();
-        Serial.println("E: invalid transition");
+//        Serial.println("E: invalid transition");
         return;
     }
     m_beeper.stop();
@@ -273,18 +273,18 @@ void DoorAccess::startFromMain()
     m_door.setEnterHandler([this] (int count, int delta) {
         Serial.printf("I: door handler count %d, delta %d\n", count, delta);
         //addFromThread(count, delta, esp_timer_get_time() / 1000000);
-        time_t seconds = time(nullptr); // time since the Epoch
-        addFromThread(count, delta, seconds);
+        //time_t seconds = time(nullptr); // time since the Epoch
+        addFromThread(count, delta);
     });
     m_door.start();
 }
 
-void DoorAccess::addFromThread(int counter, int delta, int64_t timestamp)
+void DoorAccess::addFromThread(int counter, int delta)
 {
     DoorMessage message;
     message.counter = counter;
     message.delta = delta;
-    message.timestamp = timestamp;
+//    message.timestamp = timestamp;
     
     lock.lock();
     queue_from_thread.push_back(message);

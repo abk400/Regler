@@ -28,12 +28,9 @@ void ServerJoin::handleServerJoin() {
   D_PRINTLN("ServerJoin::handleServerJoin");
   
   std::string html;
+  fillResponseHtml();
   getResponseHtml(html);
-  
-//  stringstream printss;
-//  printss << "Data returned to client: \n" << html;
-//  D_PRINTLN(printss.str().c_str());
-  
+
   m_reglerApp->server->send(200, "text/html", html.c_str());
 }
 
@@ -74,23 +71,15 @@ void ServerJoin::handleSubmit() {
   m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
-//void ServerJoin::handleReset() {
-//  D_PRINTLN("ServerJoin::handleReset");
-//  string response;
-//  reset(&response);
-//  response += "\n";
-//  m_reglerApp->server->send(200, "text/html", response.c_str());
-//}
-
 bool ServerJoin::connect(const std::string & server, int port, int point_id, int sensor_id, std::string * response)
 { 
-  stringstream ss;
-  ss << "Connecting " << server.c_str();
-  D_PRINTLN(ss.str().c_str());
+  D_PRINT("Connecting ");
+  D_PRINTLN(server.c_str());
   
   ServerCommunication & communication = m_reglerApp->communication;
   
   JoinStatus status = communication.join(server, port, point_id, sensor_id, response);
+  m_reglerApp->statistic.active = status;
   
   Storage * storage = Storage::instance();
   if (status) {
@@ -101,7 +90,7 @@ bool ServerJoin::connect(const std::string & server, int port, int point_id, int
       storage->write_int(SENSOR_ID_STR, sensor_id);
 
       // set current time from server
-      setTime(status.time);
+      setTime(status.time);      
   } else {
       m_newEvent = std::make_shared<Event>(SERVER_ERROR, this);
       storage->write(SERVER_IP_STR, "");
@@ -109,13 +98,12 @@ bool ServerJoin::connect(const std::string & server, int port, int point_id, int
   m_reglerApp->id = status.id;
   
   if (!status) {
-      D_PRINTLN("");
+      D_PRINTLN("Server not connected!!!!");
       *response = m_reglerApp->page1 + "Server not connected!!!!" + m_reglerApp->page2;
   }
   
   return status;
 }
-
 
 void ServerJoin::fillResponseHtml() {
     ReglerApp * app = static_cast<ReglerApp *> (m_app);
@@ -153,7 +141,6 @@ void ServerJoin::fillResponseHtml() {
     ss << "</form>";
 
     m_reglerApp->responseHTML = ss.str();
-    D_PRINTLN(ss.str().c_str());
 }
 
 void ServerJoin::setTime(const int64_t &date)

@@ -37,7 +37,7 @@ typedef std::function<void (int , int )> TLeaveEnter; // counter, delta
 struct DoorMessage {
     int counter = 0;
     int delta = 0;
-    int64_t timestamp = 0;
+//    int64_t timestamp = 0;
 };
 typedef std::list<DoorMessage> MessageQueue;
 
@@ -92,7 +92,7 @@ class DoorAccess {
 public:
     void startFromMain();
     void checkOutFromMain(MessageQueue *result );
-    void addFromThread(int counter, int delta, int64_t timestamp);
+    void addFromThread(int counter, int delta);
     
 private:
     Door m_door;

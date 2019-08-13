@@ -208,6 +208,8 @@ void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
 {
   D_PRINTLN("Starting..");
 
+  refresh();
+
   m_reglerApp->server->on("/", std::bind(&WifiSpot::handleRoot, this));
   m_reglerApp->server->on("/status", std::bind(&WifiSpot::handleStatus, this));
   m_reglerApp->server->on("/wifi", std::bind(&WifiSpot::handleWifi, this));

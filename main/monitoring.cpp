@@ -21,7 +21,7 @@ void Monitoring::queryEvents()
     static int64_t last_poll = 0;
     int64_t now = esp_timer_get_time() / (1000000*60);
     
-    if (now - last_poll > 5) {
+    if (now - last_poll > 1) {
         last_poll = now;
         MessageQueue queue;
         m_doorAccess.checkOutFromMain(&queue);
@@ -29,8 +29,10 @@ void Monitoring::queryEvents()
         if (NOT queue.empty()) {
             ReglerApp* reglerApp = static_cast<ReglerApp*>(m_app);
 
-            EntranceEvent entrance_in(EntranceEvent::IN, now*60);
-            EntranceEvent entrance_out(EntranceEvent::OUT, now*60);
+            time_t seconds = time(nullptr); // time since the Epoch
+
+            EntranceEvent entrance_in(EntranceEvent::IN, seconds);
+            EntranceEvent entrance_out(EntranceEvent::OUT, seconds);
 
             for (DoorMessage & message : queue) {
                 if (message.delta == -1) {
