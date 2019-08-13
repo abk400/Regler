@@ -71,7 +71,7 @@ string Protocol::entranceEventMessage(const int id_device, const EntranceEvent &
 
     if (entr_out.count > 0) {
         JsonObject& nested = array.createNestedObject();
-        nested["id"]        = (int) entr_o.id;
+        nested["id"]        = (int) entr_out.id;
         nested["time"]      = (long)entr_out.stamp;
         nested["direction"] = (int)entr_out.dir;
         nested["count"]     = (int)entr_out.count;
