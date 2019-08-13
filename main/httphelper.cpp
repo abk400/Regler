@@ -126,14 +126,16 @@ bool HttpHelper::reset(std::string *response)
 {
     Storage * storage = Storage::instance();
     if (storage) {
-        m_newEvent = std::make_shared<Event>(INITIAL_TRANSITION, this);
         // clear wifi connection
-        storage->write("pass", "");
+        storage->write("network", "null");
+        storage->write("pass", "null");
         // clear server data info
-        storage->write(SERVER_IP_STR, "");
+        storage->write(SERVER_IP_STR, "127.0.0.1");
         storage->write_int(SERVER_PORT_STR, 0);
         storage->write_int(POINT_ID_STR, 0);
         storage->write_int(SENSOR_ID_STR, 0);
+
+        m_newEvent = std::make_shared<Event>(INITIAL_TRANSITION, this);
     }
     *response = m_reglerApp->page1 + "Device reset OK." + m_reglerApp->page2;
 

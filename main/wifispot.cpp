@@ -224,7 +224,7 @@ void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
   Storage * disk = Storage::instance();
   string ssid = disk->read("network");
   string pass = disk->read("pass");
-  if (NOT ssid.empty() && NOT pass.empty()) {
+  if (NOT ssid.empty() && NOT pass.empty() && ssid != "null") {
     std::map<string, string> args;
     args["network"] = ssid;
     args["pass"] = pass;
@@ -235,6 +235,6 @@ void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
   else
   {
       m_reglerApp->lastErrMsg = "No WiFi point selected.";
-      refresh();
+//      refresh();
   }
 }
