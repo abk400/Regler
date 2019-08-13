@@ -37,6 +37,8 @@ void WifiSpot::refresh() {
   WiFi.softAP("ReglerAcessPoint");
   
   m_reglerApp->dnsServer.start(m_reglerApp->DNS_PORT, "*", m_reglerApp->apIP);
+
+  lastWifiPageHTML = m_reglerApp->responseHTML;
 }
 
 void WifiSpot::handleRefresh() {
@@ -57,6 +59,15 @@ void WifiSpot::handleRoot() {
 //  D_PRINTLN(printss.str().c_str());
   
   m_reglerApp->server->send(200, "text/html", html.c_str());
+}
+
+void WifiSpot::handleWifi()
+{
+    D_PRINTLN("WifiSpot::handleWifi");
+    string response;
+    m_reglerApp->responseHTML = lastWifiPageHTML;
+    getResponseHtml(&response);
+    m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
 void WifiSpot::handleNotFound() {
@@ -199,6 +210,7 @@ void WifiSpot::enter(EspObject */*source*/, Event */*event*/)
 
   m_reglerApp->server->on("/", std::bind(&WifiSpot::handleRoot, this));
   m_reglerApp->server->on("/status", std::bind(&WifiSpot::handleStatus, this));
+  m_reglerApp->server->on("/wifi", std::bind(&WifiSpot::handleWifi, this));
   m_reglerApp->server->on("/refresh", std::bind(&WifiSpot::handleRefresh, this));
   m_reglerApp->server->on("/connect", std::bind(&WifiSpot::handleConnect, this));
   m_reglerApp->server->on("/reset", std::bind(&WifiSpot::handleReset, this));

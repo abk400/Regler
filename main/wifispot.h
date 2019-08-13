@@ -11,6 +11,7 @@ public:
     virtual EventPtr loop();
     void handleNotFound();
     void handleRoot();
+    void handleWifi();
     void handleRefresh();
     void handleConnect();
     void handleReset();
@@ -21,5 +22,7 @@ public:
     
 private:
     EventPtr m_eventCredentials;
+
+    std::string lastWifiPageHTML; // cashed wifi page
     
 };
