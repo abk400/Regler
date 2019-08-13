@@ -17,9 +17,15 @@ public:
 
 
     bool reset(std::string *response);
-    bool fillStatusResponseHtml();
+    void fillStatusResponseHtml();
 protected:
     ReglerApp * m_reglerApp;
+
+
+    static const char * const SERVER_IP_STR;
+    static const char * const SERVER_PORT_STR;
+    static const char * const SENSOR_ID_STR;
+    static const char * const POINT_ID_STR;
 };
 
 #endif // HTTPHELPER_H

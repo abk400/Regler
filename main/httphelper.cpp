@@ -1,7 +1,13 @@
 #include "httphelper.h"
 #include "reglerapp.h"
+#include "storage.h"
 #include <sstream>
 
+
+const char * const HttpHelper::SERVER_IP_STR     = "srv_ip";
+const char * const HttpHelper::SERVER_PORT_STR   = "srv_port";
+const char * const HttpHelper::SENSOR_ID_STR     = "srv_sensor_id";
+const char * const HttpHelper::POINT_ID_STR      = "srv_point_id";
 
 static const char* HTML_BEGIN = "<html>";
 static const char* HTML_HEAD_STYLE = \
@@ -105,7 +111,7 @@ std::string HttpHelper::getCurrentTimeString()
     return std::string(buffer);
 }
 
-bool HttpHelper::reset(string *response)
+bool HttpHelper::reset(std::string *response)
 {
     Storage * storage = Storage::instance();
     if (storage) {
@@ -123,14 +129,14 @@ bool HttpHelper::reset(string *response)
     return true;
 }
 
-bool HttpHelper::fillStatusResponseHtml()
+void HttpHelper::fillStatusResponseHtml()
 {
     ReglerApp * app = static_cast<ReglerApp *> (m_app);
     std::string ip_string = app->m_local_ip.toString().c_str();
 
 
     Storage * storage= Storage::instance();
-    string server_ip = storage->read(SERVER_IP_STR);
+    std::string server_ip = storage->read(SERVER_IP_STR);
     int server_port  = storage->read_int(SERVER_PORT_STR);
     int sensor_id    = storage->read_int(SENSOR_ID_STR);
     int point_id     = storage->read_int(POINT_ID_STR);

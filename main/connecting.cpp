@@ -25,10 +25,12 @@ void Connecting::enter(EspObject */*source*/, Event *event)
 
 
 void Connecting::connectWifi(const string & ssid, const string & password ) {
+    ReglerApp * app = static_cast<ReglerApp *> (m_app);
     D_PRINTLN();
     D_PRINTLN();
     D_PRINT("Connecting to ");
     D_PRINTLN(ssid.c_str());
+
     delay(3000);
 
     WiFi.begin(ssid.c_str(), password.c_str());
@@ -54,7 +56,7 @@ void Connecting::connectWifi(const string & ssid, const string & password ) {
     D_PRINTLN("WiFi connected");
     D_PRINTLN("IP address: ");
     D_PRINTLN(WiFi.localIP());
-    ReglerApp * app = static_cast<ReglerApp *> (m_app);
+
     app->m_local_ip = WiFi.localIP();
     m_newEvent = std::make_shared<Event>(WIFI_CONNECTED, this);
 }

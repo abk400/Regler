@@ -110,7 +110,7 @@ void WifiSpot::handleStatus() {
     D_PRINTLN("WifiSpot::handleStatus");
     string response;
     fillStatusResponseHtml();
-    getResponseHtml(&response);
+    getResponseHtml(response);
     m_reglerApp->server->send(200, "text/html", response.c_str());
 }
 
