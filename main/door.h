@@ -51,6 +51,9 @@ struct Led {
     int pin_in_level;
     int channel;
 };
+
+#define MAX_HISTORY 10
+
 class Door
 {
 public:
@@ -73,8 +76,13 @@ private:
     void ledPoll(int number);
 
     Led m_leds[2];
+
+
+    Led m_leds_change_history[MAX_HISTORY][2];
+    uint16_t m_history_index;
+    bool m_print_history;
     
-    static const unsigned long quarter_of_second = 1000 * 1000 * 0.05;
+    static const unsigned long quarter_of_second = 25000;
     
     DoorState doorStateMachine[DoorStatesCount][DoorEventsCount];
     

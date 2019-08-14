@@ -106,7 +106,7 @@ void main_run(void *pvParameter) {
 
 void Door::start()
 {
-    xTaskCreate(&main_run, "door_task", 2048, (void *)this, 5, NULL);
+    xTaskCreate(&main_run, "door_task", 20, (void *)this, (2 | portPRIVILEGE_BIT), NULL);
 }
 
 void Door::setup()
@@ -132,7 +132,7 @@ void Door::setup()
    for (Led & led : m_leds) {
        pinMode(led.pin_in_level, INPUT);
        
-       vTaskDelay(10);
+       vTaskDelay(100);
        //attachInterrupt(led.pin_in_level, led.channel == 0 ? rising0 : rising1, RISING);
    }
   
@@ -144,13 +144,19 @@ void Door::loop()
     for (int i =0; i < 2; i++) {
         ledPoll(i);
     }
+
+    m_leds_change_history[m_history_index][0] = m_leds[0].barrier_now;
+    m_leds_change_history[m_history_index][1] = m_leds[1].barrier_now;
+    ++m_history_index;
+    if (m_history_index > (MAX_HISTORY-1))
+      m_history_index = 0;
+
     static unsigned long update = micros();
     unsigned long now = micros();
 
-    for (Led &led : m_leds) {
+    for (const Led &led : m_leds) {
       if ((led.barrier_prev == led.barrier_now) && led.barrier_now == true) {
-        if (now - led.stabilization_start >
-            1000 * 1000 * m_beeper.getBeeperTimeout()) {
+        if (now - led.stabilization_start > 1000 * 1000 * m_beeper.getBeeperTimeout()) {
           m_beeper.start();
         }
       }
@@ -160,10 +166,11 @@ void Door::loop()
         m_beeper.stop();
     }
 
-    if (now - update > 1000 * 1000 * 5) {
-//        D_PRINT_F("led0.barrier= %d\n", m_leds[0].barrier_now);
-//        D_PRINT_F("led1.barrier= %d\n", m_leds[1].barrier_now);
+    if (now - update > 1000 * 1000 * 5 || m_print_history) {
+        D_PRINT_F("History led0{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}\n", m_leds_change_history[0][0],m_leds_change_history[1][0],m_leds_change_history[2][0],m_leds_change_history[3][0],m_leds_change_history[4][0],m_leds_change_history[5][0],m_leds_change_history[6][0],m_leds_change_history[7][0],m_leds_change_history[8][0],m_leds_change_history[9][0]);
+        D_PRINT_F("History led1{%d,%d,%d,%d,%d,%d,%d,%d,%d,%d}\n", m_leds_change_history[0][1],m_leds_change_history[1][1],m_leds_change_history[2][1],m_leds_change_history[3][1],m_leds_change_history[4][1],m_leds_change_history[5][1],m_leds_change_history[6][1],m_leds_change_history[7][1],m_leds_change_history[8][1],m_leds_change_history[9][1]);
         update = now;
+        m_print_history = false;
     }
 
 }
@@ -181,6 +188,7 @@ void Door::handleEvent(DoorEvent event)
     if (state == DoorStateNone) {
         m_beeper.start();
 //        Serial.println("E: invalid transition");
+        m_doorState = MON;
         return;
     }
     m_beeper.stop();
@@ -190,9 +198,11 @@ void Door::handleEvent(DoorEvent event)
         
         m_enterHandler(m_peopleCounter, 1);
         m_peopleCounter++;
+        m_print_history = true;
     } else if (m_doorState == TRY_LEAVE3 && state == MON) {
         m_enterHandler(m_peopleCounter, -1);
         m_peopleCounter--;
+        m_print_history = true;
     }
     m_doorState = state;
 }
@@ -207,9 +217,10 @@ void Door::fillDoorStates() {
     doorStateMachine[TRY_ENTER1][L2_UP_DOWN] = TRY_ENTER2;
     
     doorStateMachine[TRY_ENTER2][L1_DOWN_UP] = TRY_ENTER3;
-    doorStateMachine[TRY_ENTER2][L2_DOWN_UP] = TRY_ENTER1;
+    doorStateMachine[TRY_ENTER2][L2_DOWN_UP] = TRY_LEAVE3;  //
     
     doorStateMachine[TRY_ENTER3][L1_UP_DOWN] = TRY_ENTER2;
+//    doorStateMachine[TRY_ENTER3][L1_DOWN_UP] = MON; //
     doorStateMachine[TRY_ENTER3][L2_DOWN_UP] = MON;
     
     doorStateMachine[TRY_LEAVE1][L1_UP_DOWN] = TRY_LEAVE2;
@@ -242,14 +253,14 @@ void Door::ledPoll(int number)
     if (led.barrier_now != led.barrier_prev) {
         led.barrier_prev = led.barrier_now;
         led.stabilization_start = micros();
-        led.stabilization = true;
+        led.stabilization = true;        
     }
     if (led.stabilization) {
         unsigned long now = micros();
         if (now - led.stabilization_start > quarter_of_second) {
             if (led.barrier_now) {
                 handleEvent((DoorEvent)(number * 2 + 1));
-            } else if (NOT led.barrier_now) {
+            } else {//if (NOT led.barrier_now) {
                 handleEvent((DoorEvent)(number * 2 + 2));
             }
             led.stabilization = false;
