@@ -161,8 +161,8 @@ void Door::loop()
     }
 
     if (now - update > 1000 * 1000 * 5) {
-//        D_PRINT_F("led0.barrier= %d\n", m_leds[0].barrier_now);
-//        D_PRINT_F("led1.barrier= %d\n", m_leds[1].barrier_now);
+        D_PRINT_F("led0.barrier= %d\n", m_leds[0].barrier_now);
+        D_PRINT_F("led1.barrier= %d\n", m_leds[1].barrier_now);
         update = now;
     }
 
@@ -186,11 +186,12 @@ void Door::handleEvent(DoorEvent event)
     m_beeper.stop();
 //    D_PRINT_F("I: state: %s ==> %s\n", STATE_NAMES[m_doorState].c_str(), STATE_NAMES[state].c_str());
     if (m_doorState == TRY_ENTER3 && state == MON) {
-//        D_PRINT_F("I: m_enterHandler : %d,\n", (bool)m_enterHandler);
+        D_PRINTLN("I: ENTER");
         
         m_enterHandler(m_peopleCounter, 1);
         m_peopleCounter++;
     } else if (m_doorState == TRY_LEAVE3 && state == MON) {
+        D_PRINTLN("I: LEAVE");
         m_enterHandler(m_peopleCounter, -1);
         m_peopleCounter--;
     }
