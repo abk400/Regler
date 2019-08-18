@@ -36,7 +36,9 @@ make monitor
 make flash
 ```
 Windows
+
 cd %userprofile%\esp\regler-master
+
 idf.py build
 
 ## GPIO configuration
