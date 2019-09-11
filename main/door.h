@@ -49,6 +49,7 @@ struct Led {
     
     int pin_frequency;
     int pin_in_level;
+    int pin_irq_num;
     int channel;
 };
 class Door
@@ -70,7 +71,6 @@ private:
     void fillDoorStates();
 
     void led_event(int number, bool up);
-    void ledPoll(int number);
 
     Led m_leds[2];
     

@@ -11,7 +11,7 @@ int freq = 36000;     // Частота ШИМ
 int ledChannel1 = 0;  // Канал ШИМ 0
 int ledChannel2 = 1;  // Канал ШИМ 1
 int resolution = 8;   // Разрешение
-byte PWM_PIN = 32;    // Вход измерения ШИМ (32 канал)
+// byte PWM_PIN = 32;    // Вход измерения ШИМ (32 канал)
 volatile int pwm_value = 0; // Длительнсть измеренного импульса
 volatile int prev_time = 0; // Временая переменая для оценки времени
 
@@ -43,48 +43,32 @@ void falling0();
 void falling1();
 
 // Прерывание по возрастающему фронту
-void rising(int num) {
-    Led & led = Door::instance->m_leds[num];
-    
-    D_PRINT_F("rising%d\n", num);
-    void (*handle)(void)  = (num == 0) ? falling0 : falling1;
-//    detachInterrupt(led.pin_in_level);
-//    attachInterrupt(led.pin_in_level, handle, FALLING); 
-    if (led.stabilization) {
-        D_PRINT_F("  stabilisation%d\n", num);
-        return;
-    } else {
-        Door::instance->led_event(num, true);
-    }
-    
-    //  if (digitalRead(32) == HIGH) // Проверка состояния сигнала на входе
+void IRAM_ATTR rising(int num)
+{
+    Led &led = Door::instance->m_leds[num];
+    detachInterrupt(led.pin_irq_num);
+    led.barrier_now = HIGH;
+    attachInterrupt(led.pin_irq_num, led.channel == 0 ? falling0 : falling1, FALLING);
 }
 
 // Прерывание по спадающему фронту
-void falling(int num) {
+void IRAM_ATTR falling(int num) {
     Led & led = Door::instance->m_leds[num];
-    D_PRINT_F("falling%d\n", num);
-    void (*handle)(void)  = (num == 0) ? rising0 : rising1;
-//    detachInterrupt(led.pin_in_level);
-//    attachInterrupt(led.pin_in_level, handle, RISING); // Включение прерывания по возрастающему фронту
-    if (led.stabilization) {
-        D_PRINT_F("  stabilisation%d\n", num);
-        return;
-    } else {
-        Door::instance->led_event(num, false);
-    }
+    detachInterrupt(led.pin_irq_num);
+    led.barrier_now = LOW;    
+    attachInterrupt(led.pin_irq_num, led.channel == 0 ? rising0 : rising1, RISING);
 }
 
-void rising0() {
+void IRAM_ATTR rising0() {
     rising(0);
 }
-void rising1() {
+void IRAM_ATTR rising1() {
     rising(1);
 }
-void falling0() {
+void IRAM_ATTR falling0() {
     falling(0);
 }
-void falling1() {
+void IRAM_ATTR falling1() {
     falling(1);
 }
 
@@ -99,7 +83,7 @@ void main_run(void *pvParameter) {
 
     door->setup();
     while (true) {
-        vTaskDelay(10);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         door->loop();
     }
 }
@@ -131,9 +115,10 @@ void Door::setup()
    
    for (Led & led : m_leds) {
        pinMode(led.pin_in_level, INPUT);
-       
-       vTaskDelay(10);
-       //attachInterrupt(led.pin_in_level, led.channel == 0 ? rising0 : rising1, RISING);
+       led.pin_irq_num = digitalPinToInterrupt(led.pin_in_level);
+       vTaskDelay(10 / portTICK_PERIOD_MS);
+       attachInterrupt(led.pin_irq_num, led.channel == 0 ? rising0 : rising1, RISING);
+       attachInterrupt(led.pin_irq_num, led.channel == 0 ? falling0 : falling1, FALLING);
    }
   
 
@@ -141,33 +126,43 @@ void Door::setup()
 
 void Door::loop()
 {
-    for (int i =0; i < 2; i++) {
-        ledPoll(i);
-    }
     static unsigned long update = micros();
     unsigned long now = micros();
 
-    for (Led &led : m_leds) {
-      if ((led.barrier_prev == led.barrier_now) && led.barrier_now == true) {
-        if (now - led.stabilization_start >
-            1000 * 1000 * m_beeper.getBeeperTimeout()) {
-          m_beeper.start();
+    for (Led & led : m_leds) {
+
+        if (led.barrier_now != led.barrier_prev) {
+            led.barrier_prev = led.barrier_now;
+            led.stabilization_start = micros();
+            led.stabilization = true;
+        } else {
+            if (led.barrier_now == true) {
+                if (now - led.stabilization_start > 1000 * 1000 * m_beeper.getBeeperTimeout()) {
+                    m_beeper.start();
+                }
+            }
         }
-      }
+        if (led.stabilization) {
+            if (now - led.stabilization_start > quarter_of_second) {
+                if (led.barrier_now) {
+                    handleEvent((DoorEvent)(led.channel * 2 + 1));
+                } else if (NOT led.barrier_now) {
+                    handleEvent((DoorEvent)(led.channel * 2 + 2));
+                }
+                led.stabilization = false;
+            }
+        }
     }
 
-    if(m_leds[0].barrier_now == false &&  m_leds[1].barrier_now == false) {
+    if (m_leds[0].barrier_now == false && m_leds[1].barrier_now == false) {
         m_beeper.stop();
     }
 
-    if (now - update > 1000 * 1000 * 5) {
-        D_PRINT_F("led0.barrier= %d\n", m_leds[0].barrier_now);
-        D_PRINT_F("led1.barrier= %d\n", m_leds[1].barrier_now);
+    if (m_beeper.isOn() && (now - update > 1000 * 1000 * 5)) {
+        D_PRINT_F("led.barrier %d:%d, beeper:On\n", m_leds[0].barrier_now, m_leds[1].barrier_now);
         update = now;
     }
-
 }
-
 
 void Door::setEnterHandler(TLeaveEnter enterHandler)
 {
@@ -233,29 +228,6 @@ void Door::led_event(int number, bool up)
 //        led.stabilization_start = micros();
 //    }
 //    led.stabilization = true;
-}
-
-void Door::ledPoll(int number)
-{
-    Led & led = m_leds[number];
-
-    led.barrier_now = (digitalRead(led.pin_in_level) == HIGH);
-    if (led.barrier_now != led.barrier_prev) {
-        led.barrier_prev = led.barrier_now;
-        led.stabilization_start = micros();
-        led.stabilization = true;
-    }
-    if (led.stabilization) {
-        unsigned long now = micros();
-        if (now - led.stabilization_start > quarter_of_second) {
-            if (led.barrier_now) {
-                handleEvent((DoorEvent)(number * 2 + 1));
-            } else if (NOT led.barrier_now) {
-                handleEvent((DoorEvent)(number * 2 + 2));
-            }
-            led.stabilization = false;
-        }
-    }
 }
 
 void DoorAccess::checkOutFromMain(MessageQueue * result)
