@@ -17,7 +17,7 @@ Beeper::Beeper() {
   int offset = 0;
   int invert = 2;
   int frequency_step =
-      (int)(freq * 65536 * (1 + clk_8m_div) / RTC_FAST_CLK_FREQ_APPROX);
+      (int)(m_freq * 65536 * (1 + clk_8m_div) / RTC_FAST_CLK_FREQ_APPROX);
 
   // Enable tone generator
   SET_PERI_REG_MASK(SENS_SAR_DAC_CTRL1_REG, SENS_SW_TONE_EN);
@@ -48,23 +48,27 @@ Beeper::Beeper() {
   SET_PERI_REG_BITS(SENS_SAR_DAC_CTRL1_REG, SENS_SW_FSTEP, frequency_step,
                     SENS_SW_FSTEP_S);
 
-  isOn = false;
+  m_isOn = false;
   // start();
 }
 
 void Beeper::start() {
   // Enable output
-  if (!isOn) {
+  if (!m_isOn) {
     dac_output_enable(channel);
-    isOn = true;
+    m_isOn = true;
   }
 }
 void Beeper::stop() {
   // Disable output
-  if (isOn) {
+  if (m_isOn) {
     dac_output_disable(channel);
-    isOn = false;
+    m_isOn = false;
   }
 }
 
-int Beeper::getBeeperTimeout() { return timeout; }
+int Beeper::getBeeperTimeout() { return m_timeout; }
+
+bool Beeper::isOn() {
+    return m_isOn;
+}

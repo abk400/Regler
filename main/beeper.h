@@ -8,9 +8,10 @@ public:
   void start();
   void stop();
   int getBeeperTimeout();
+  bool isOn();
 
 private:
-  bool isOn;
-  static constexpr float freq = CONFIG_SPEAKER_FREQ;  // Hz
-  static const int timeout = CONFIG_SPEAKER_TIMEOUUT; // sec
+  bool m_isOn;
+  static constexpr float m_freq = CONFIG_SPEAKER_FREQ;  // Hz
+  static const int m_timeout = CONFIG_SPEAKER_TIMEOUUT; // sec
 };
