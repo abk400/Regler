@@ -1,5 +1,22 @@
 menu "Regler Configuration"
 
+menu "LED channels"
+config LED1_FREQ
+    int "LED1 frequency"
+	range 30000 58000
+	default 36000
+	help
+		LED1 frequency, Hz
+
+config LED2_FREQ
+    int "LED2 frequency"
+	range 30000 58000
+	default 36000
+	help
+		LED2 frequency, Hz
+endmenu
+
+menu "Barrier Speaker"
 config SPEAKER_FREQ
     int "Speaker signal frequency"
 	range 10 20000
@@ -7,11 +24,19 @@ config SPEAKER_FREQ
 	help
 		Barrier speaker frequency, Hz
 
-config SPEAKER_TIMEOUUT
+config SPEAKER_TIMEOUT
     int "Speaker signal timout"
 	range 1 120
 	default 60
 	help
 		Barrier speaker timeout, seconds
+
+config PIPKA_TIMEOUT
+    int "Pipka signal timout"
+	range 100 500
+	default 200
+	help
+		Pipka timeout, milliseconds
+endmenu
 
 endmenu

@@ -2,12 +2,16 @@
 #include "esp_headers.h"
 #include "logger.h"
 
+#include "log.h"
+
 #include <string>
 #include <map>
 
 using namespace std;
 
-int freq = 36000;     // Частота ШИМ
+
+int freq1 = CONFIG_LED1_FREQ;     // Частота ШИМ Channel 0
+int freq2 = CONFIG_LED2_FREQ;     // Частота ШИМ Channel 1
 int ledChannel1 = 0;  // Канал ШИМ 0
 int ledChannel2 = 1;  // Канал ШИМ 1
 int resolution = 8;   // Разрешение
@@ -75,7 +79,7 @@ void IRAM_ATTR falling1() {
 Door::Door()
 {
     instance = this;
-    
+    m_beeper = Beeper::getInstance();
 }
 
 void main_run(void *pvParameter) {
@@ -108,10 +112,14 @@ void Door::setup()
    
    fillDoorStates();
    
-   
-   ledcAttachPin(25, 0);
-   ledcSetup(0, freq, resolution);
-   ledcWrite(0, 122);
+   // Channel 0
+   ledcAttachPin(m_leds[0].pin_frequency, m_leds[0].channel);
+   ledcSetup(m_leds[0].channel, freq1, resolution);
+   ledcWrite(m_leds[0].channel, 122);
+   // Channel 1
+   ledcAttachPin(m_leds[1].pin_frequency, m_leds[1].channel);
+   ledcSetup(m_leds[1].channel, freq2, resolution);
+   ledcWrite(m_leds[1].channel, 122);
    
    for (Led & led : m_leds) {
        pinMode(led.pin_in_level, INPUT);
@@ -137,8 +145,12 @@ void Door::loop()
             led.stabilization = true;
         } else {
             if (led.barrier_now == true) {
-                if (now - led.stabilization_start > 1000 * 1000 * m_beeper.getBeeperTimeout()) {
-                    m_beeper.start();
+                if (now - led.stabilization_start > 1000 * 1000 * m_beeper->getBeeperTimeout()) {
+                    m_beeper->pipka();
+                    if(now - update > 1000 * 1000 * 5) {
+                        log_error("led.barrier %d:%d, beeper:On\n", m_leds[0].barrier_now, m_leds[1].barrier_now);
+                        update = now;
+                    }                        
                 }
             }
         }
@@ -153,15 +165,6 @@ void Door::loop()
             }
         }
     }
-
-    if (m_leds[0].barrier_now == false && m_leds[1].barrier_now == false) {
-        m_beeper.stop();
-    }
-
-    if (m_beeper.isOn() && (now - update > 1000 * 1000 * 5)) {
-        D_PRINT_F("led.barrier %d:%d, beeper:On\n", m_leds[0].barrier_now, m_leds[1].barrier_now);
-        update = now;
-    }
 }
 
 void Door::setEnterHandler(TLeaveEnter enterHandler)
@@ -174,22 +177,25 @@ void Door::handleEvent(DoorEvent event)
     DoorState state = doorStateMachine[m_doorState][event];
 //    D_PRINT_F("I: current state: %s, came event %s\n", STATE_NAMES[m_doorState].c_str(), EVENT_NAMES[event].c_str());
     if (state == DoorStateNone) {
-        m_beeper.start();
+        // m_beeper->start();
 //        Serial.println("E: invalid transition");
         return;
     }
-    m_beeper.stop();
 //    D_PRINT_F("I: state: %s ==> %s\n", STATE_NAMES[m_doorState].c_str(), STATE_NAMES[state].c_str());
     if (m_doorState == TRY_ENTER3 && state == MON) {
-        D_PRINTLN("I: ENTER");
-        
+        // D_PRINTLN("I: ENTER");
         m_enterHandler(m_peopleCounter, 1);
         m_peopleCounter++;
+        m_beeper->pipka();
+        log_info("ENTER [pc:%d]",m_peopleCounter);
     } else if (m_doorState == TRY_LEAVE3 && state == MON) {
-        D_PRINTLN("I: LEAVE");
+        // D_PRINTLN("I: LEAVE");
         m_enterHandler(m_peopleCounter, -1);
         m_peopleCounter--;
+        m_beeper->pipka();
+        log_info("LEAVE [pc:%d]",m_peopleCounter);
     }
+
     m_doorState = state;
 }
 

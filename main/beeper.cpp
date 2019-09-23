@@ -1,3 +1,5 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #include "soc/rtc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "soc/rtc_io_reg.h"
@@ -7,9 +9,28 @@
 
 #include "driver/dac.h"
 
+#include "log.h"
 #include "beeper.h"
 
 static const dac_channel_t channel = DAC_CHANNEL_2; // GPIO26
+
+static TimerHandle_t m_timer = NULL;
+
+Beeper* Beeper::m_instance = NULL;
+
+Beeper* Beeper::getInstance() {
+  if(m_instance == NULL) {
+    m_instance = new Beeper();
+  }
+  return m_instance;
+}
+
+static void vTimerCallback(TimerHandle_t t)
+{
+    xTimerStop(t, 0);
+    xTimerDelete(t, 0);
+    Beeper::getInstance()->stop();
+}
 
 Beeper::Beeper() {
   int clk_8m_div = 0;
@@ -49,6 +70,7 @@ Beeper::Beeper() {
                     SENS_SW_FSTEP_S);
 
   m_isOn = false;
+  m_timer = NULL;
   // start();
 }
 
@@ -71,4 +93,22 @@ int Beeper::getBeeperTimeout() { return m_timeout; }
 
 bool Beeper::isOn() {
     return m_isOn;
+}
+
+void Beeper::pipka()
+{
+  if(m_isOn) {
+    return;
+  }
+    m_timer = xTimerCreate("Timer", pdMS_TO_TICKS(m_pipkatimeout), pdFALSE, (void*)0, &vTimerCallback);
+    if (m_timer == NULL) {
+        log_error("Cannot create timer");
+    } else {
+        if (xTimerStart(m_timer, 0) != pdPASS) {
+            log_error("Cannot start timer");
+        }
+        else {
+          start();
+        }
+    }
 }

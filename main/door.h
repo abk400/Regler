@@ -66,7 +66,7 @@ public:
     
     void handleEvent(DoorEvent event);
 
-    Beeper m_beeper;
+    Beeper* m_beeper;
 private:
     void fillDoorStates();
 
