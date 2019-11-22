@@ -42,9 +42,9 @@ struct DoorMessage {
 typedef std::list<DoorMessage> MessageQueue;
 
 struct Led {
-    bool stabilization = false;
-    bool barrier_prev = false;
-    bool barrier_now = false;
+    volatile bool stabilization = false;
+    volatile bool barrier_prev = false;
+    volatile bool barrier_now = false;
     unsigned long stabilization_start = 0;
     
     int pin_frequency;
@@ -74,7 +74,7 @@ private:
 
     Led m_leds[2];
     
-    static const unsigned long quarter_of_second = 1000 * 1000 * 0.05;
+    static const unsigned long quarter_of_second = 1000 * 1000 * 0.05; // 50ms
     
     DoorState doorStateMachine[DoorStatesCount][DoorEventsCount];
     

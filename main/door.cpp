@@ -18,6 +18,7 @@ int resolution = 8;   // Разрешение
 // byte PWM_PIN = 32;    // Вход измерения ШИМ (32 канал)
 volatile int pwm_value = 0; // Длительнсть измеренного импульса
 volatile int prev_time = 0; // Временая переменая для оценки времени
+const byte duty = 122; // 50%
 
 Door * Door::instance;
 
@@ -41,41 +42,6 @@ static std::map<DoorEvent, string> EVENT_NAMES = {
 	{L2_DOWN_UP, "L2_DOWN_UP"}
 };
 
-void rising0();
-void rising1();
-void falling0();
-void falling1();
-
-// Прерывание по возрастающему фронту
-void IRAM_ATTR rising(int num)
-{
-    Led &led = Door::instance->m_leds[num];
-    detachInterrupt(led.pin_irq_num);
-    led.barrier_now = HIGH;
-    attachInterrupt(led.pin_irq_num, led.channel == 0 ? falling0 : falling1, FALLING);
-}
-
-// Прерывание по спадающему фронту
-void IRAM_ATTR falling(int num) {
-    Led & led = Door::instance->m_leds[num];
-    detachInterrupt(led.pin_irq_num);
-    led.barrier_now = LOW;    
-    attachInterrupt(led.pin_irq_num, led.channel == 0 ? rising0 : rising1, RISING);
-}
-
-void IRAM_ATTR rising0() {
-    rising(0);
-}
-void IRAM_ATTR rising1() {
-    rising(1);
-}
-void IRAM_ATTR falling0() {
-    falling(0);
-}
-void IRAM_ATTR falling1() {
-    falling(1);
-}
-
 Door::Door()
 {
     instance = this;
@@ -86,10 +52,9 @@ void main_run(void *pvParameter) {
     Door * door = (Door*)pvParameter;
 
     door->setup();
-    while (true) {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-        door->loop();
-    }
+
+    door->loop();
+
 }
 
 void Door::start()
@@ -101,44 +66,57 @@ void Door::setup()
 {
     D_PRINTLN("Door::setup");
 
-   m_leds[0].pin_frequency = 25;
-   m_leds[1].pin_frequency = 27;
-   
-   m_leds[0].pin_in_level = 32;
-   m_leds[1].pin_in_level = 35;
-   
-   m_leds[0].channel = 0;
-   m_leds[1].channel = 1;
-   
-   fillDoorStates();
-   
-   // Channel 0
-   ledcAttachPin(m_leds[0].pin_frequency, m_leds[0].channel);
-   ledcSetup(m_leds[0].channel, freq1, resolution);
-   ledcWrite(m_leds[0].channel, 122);
-   // Channel 1
-   ledcAttachPin(m_leds[1].pin_frequency, m_leds[1].channel);
-   ledcSetup(m_leds[1].channel, freq2, resolution);
-   ledcWrite(m_leds[1].channel, 122);
-   
-   for (Led & led : m_leds) {
-       pinMode(led.pin_in_level, INPUT);
-       led.pin_irq_num = digitalPinToInterrupt(led.pin_in_level);
-       vTaskDelay(10 / portTICK_PERIOD_MS);
-       attachInterrupt(led.pin_irq_num, led.channel == 0 ? rising0 : rising1, RISING);
-       attachInterrupt(led.pin_irq_num, led.channel == 0 ? falling0 : falling1, FALLING);
-   }
-  
+    m_leds[0].pin_frequency = 25;
+    m_leds[1].pin_frequency = 27;
 
+    m_leds[0].pin_in_level = 32;
+    m_leds[1].pin_in_level = 35;
+
+    m_leds[0].channel = 0;
+    m_leds[1].channel = 1;
+
+    fillDoorStates();
+
+    // Channel 0
+    ledcAttachPin(m_leds[0].pin_frequency, m_leds[0].channel);
+    ledcSetup(m_leds[0].channel, freq1, resolution);
+    ledcWrite(m_leds[0].channel, duty);
+    // Channel 1
+    ledcAttachPin(m_leds[1].pin_frequency, m_leds[1].channel);
+    ledcSetup(m_leds[1].channel, freq2, resolution);
+    ledcWrite(m_leds[1].channel, duty);
+
+    for (Led& led : m_leds) {
+        pinMode(led.pin_in_level, INPUT);
+        led.pin_irq_num = digitalPinToInterrupt(led.pin_in_level);
+        detachInterrupt(led.pin_irq_num);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
 }
 
 void Door::loop()
 {
     static unsigned long update = micros();
-    unsigned long now = micros();
 
-    for (Led & led : m_leds) {
+    int active_channel = 0;
 
+    while (true) {
+
+        unsigned long now = micros();
+
+        int iddle_channel = active_channel ? 0 : 1;
+
+        // Read active line and turn it off
+        Led& led = m_leds[active_channel];
+        led.barrier_now = gpio_get_level((gpio_num_t)led.pin_in_level);
+        ledcDetachPin(led.pin_frequency);
+        // Wait for the transients to complete        
+        vTaskDelay(2 / portTICK_PERIOD_MS);
+        // Turn on iddle line
+        Led& iled = m_leds[iddle_channel];
+        ledcAttachPin(iled.pin_frequency, iled.channel);
+
+        // Analize cached active line status
         if (led.barrier_now != led.barrier_prev) {
             led.barrier_prev = led.barrier_now;
             led.stabilization_start = micros();
@@ -147,10 +125,10 @@ void Door::loop()
             if (led.barrier_now == true) {
                 if (now - led.stabilization_start > 1000 * 1000 * m_beeper->getBeeperTimeout()) {
                     m_beeper->pipka();
-                    if(now - update > 1000 * 1000 * 5) {
+                    if (now - update > 1000 * 1000 * 5) {
                         log_error("led.barrier %d:%d, beeper:On\n", m_leds[0].barrier_now, m_leds[1].barrier_now);
                         update = now;
-                    }                        
+                    }
                 }
             }
         }
@@ -164,6 +142,9 @@ void Door::loop()
                 led.stabilization = false;
             }
         }
+        vTaskDelay(8 / portTICK_PERIOD_MS);
+        // Switch channels
+        active_channel = active_channel ? 0 : 1;
     }
 }
 
